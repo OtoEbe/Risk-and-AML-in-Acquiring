@@ -378,15 +378,15 @@ input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var
 <section id="predict" class="screen">
   <div class="tag" id="pdTag">Before the round</div>
   <h1 id="pdTitle">Call your shot</h1>
-  <p class="sub">Two minutes, one written prediction. Name the decision this round is most likely to punish, and the idea from this morning you intend to use deliberately. You will see it again at the debrief, where it either aged well or it did not.</p>
+  <p class="sub">One sentence before you play: which decision will this round punish? Your answer comes back at the debrief.</p>
   <div class="card section-gap">
     <div class="field">
-      <label>Your table's prediction</label>
-      <textarea id="pdText" maxlength="400" placeholder="e.g. This round will punish approving fast without checking the descriptor. We are using the two non-negotiable tests on every merchant."></textarea>
+      <label>Your prediction</label>
+      <textarea id="pdText" maxlength="200" placeholder="e.g. Approving fast without reading the file."></textarea>
     </div>
     <div class="row">
-      <button class="btn" id="pdGo">Lock the prediction and play →</button>
-      <button class="btn secondary" id="pdSkip">Skip straight to the round</button>
+      <button class="btn" id="pdGo">Lock it and play →</button>
+      <button class="btn secondary" id="pdSkip">Skip →</button>
     </div>
   </div>
 </section>
@@ -561,10 +561,10 @@ const COURSES = {
   },
   "risk-aml-acquiring":{
     title:"Risk & AML in Acquiring", level:"Advanced · 3-Day Cohort", live:true, accent:"#C19A6B", days:true,
-    desc:"Three mornings on the risk desk at Meridian Acquiring, matched to your trainer's programme. Day 1 buys you the language: the economics, the models, the taxonomy. Day 2 puts you on the gate: regulator, schemes, thresholds, laundering. Day 3 hands you the desk. Ten calls a morning, real capital on every one, and the standings go up in front of the room.",
+    desc:"Three mornings on the risk desk at Meridian Bank, matched to your trainer's programme. Day 1 buys you the language: the economics, the models, the taxonomy. Day 2 puts you on the gate: regulator, schemes, thresholds, laundering. Day 3 hands you the desk. Ten calls a morning, real capital on every one, and the standings go up in front of the room.",
     budget:100000,
     tiers:[["Risk Analyst",0,0],["Underwriter",100,128000],["Risk Manager",210,158000],["Head of Acquiring Risk",270,176000],["Chief Risk Officer",400,224000]],
-    boardroom:{employer:"Meridian Acquiring", speaker:"Tunde Adeyemi, Chief Risk Officer",
+    boardroom:{employer:"Meridian Bank", speaker:"Tunde Adeyemi, Chief Risk Officer",
       role:"Acquiring Risk Officer",
       line:`<span class="npc">"Take a seat. Here is the part they leave out of the offer letter: every merchant on this book processes under our sponsorship, so whatever they do, the schemes bill it to us. You have three mornings with me. Ten calls a morning, and your capital moves on every one of them, up when the call is right, down when it is not. The room will see the standings at noon, every day. Run the gate hard, monitor like you mean it, keep the book inside threshold. A win, or nothing. Make it a win."</span>`,
       task:"Ten calls a day. Keep the book inside threshold."}
@@ -864,14 +864,14 @@ evaluate:(picks)=>{
 /* ---------- DAY 1 · The Language of the Desk ---------- */
 {
 id:"ar_day1", day:1, title:"Day 1 · The Language of the Desk", mult:1.0, start:"Q1", budget:100000,
-blurb:"Your first morning on the risk desk at Meridian Acquiring. Ten calls: the economics, phygital, the models, the risk taxonomy, and the weakest link. Learn the language before the language gets expensive.",
+blurb:"Your first morning on the risk desk at Meridian Bank. Ten calls: the economics, phygital, the models, the risk taxonomy, and the weakest link. Learn the language before the language gets expensive.",
 criteria:[{id:"econ",name:"Economics & language",w:25},{id:"models",name:"Operating models",w:25},{id:"taxonomy",name:"Risk taxonomy",w:25},{id:"diagnosis",name:"Weak-link diagnosis",w:25}],
 slos:[{id:"D1-O1",t:"Explain the win-or-nothing economics of acquiring"},{id:"D1-O2",t:"Distinguish the four-party and PayFac models"},{id:"D1-O3",t:"Classify eCommerce and merchant-fraud risks"},{id:"D1-O4",t:"Diagnose the weakest link"}],
 bestPath:"Q1 margin lives in basis points → Q2 phygital moves the exposure with the journey → Q3 CNP raises the bar → Q4 fraud and disputes hit the P&L first → Q5 the scheme bills the acquirer → Q6 register Bricklane as a PayFac → Q7 fix the descriptor at intake → Q8 velocity monitoring first → Q9 file A is the burst-out → Q10 the unworked alert queue is the weakest link.",
 nodes:{
 
 Q1:{title:"07:58, and the room is already tense", obj:"D1-O1 · the economics",
-narr:`Your first morning at <b>Meridian Acquiring</b>. Tunde Adeyemi, Chief Risk Officer, drops the portfolio pack on your desk without slowing down.\n\n41 million transactions last quarter. Net revenue works out to a few basis points per transaction. Last year, one merchant failure cost the desk $310,000.\n\nA new colleague leans over: <span class="npc">"Everyone here acts like we sell dynamite. It is card processing. Why the nerves?"</span>\n\nWhat is the honest answer?`,
+narr:`Your first morning at <b>Meridian Bank</b>. Tunde Adeyemi, Chief Risk Officer, drops the portfolio pack on your desk without slowing down.\n\n41 million transactions last quarter. Net revenue works out to a few basis points per transaction. Last year, one merchant failure cost the desk $310,000.\n\nA new colleague leans over: <span class="npc">"Everyone here acts like we sell dynamite. It is card processing. Why the nerves?"</span>\n\nWhat is the honest answer?`,
 hint:"Follow the arithmetic. If a clean transaction earns you a few cents, how many clean transactions does one $310,000 failure erase?", hintCrit:"econ",
 choices:[
  {t:"Margin is basis points on huge volume, so one bad merchant can erase thousands of clean sales. Prevention is the business model.", q:"best", money:3000, goto:"Q2",
@@ -1995,7 +1995,7 @@ function finish(){
   $("dbMistakes").innerHTML = ss.mistakes.length? ss.mistakes.map(m=>"• "+m).join("<br>") : "No entries this run. Clean work.";
   if(ss.prediction){
     $("dbPredictCard").style.display="block";
-    $("dbPredict").innerHTML = `<i>"${esc(ss.prediction)}"</i><br><br>Hold that against the run you just played. What cost you, what did the round reward, and where does the same trade-off show up at the desk on Monday? Bring the answer to the debrief table.`;
+    $("dbPredict").innerHTML = `<i>"${esc(ss.prediction)}"</i><br><br>Did it age well? Hold it against the run: what cost you, and what did the round reward?`;
   } else { $("dbPredictCard").style.display="none"; }
   $("dbStandings").onclick = ()=>{ renderLB(scn.day ? scn.id : "all"); show("lboard"); };
   emit("debrief_view",{});
