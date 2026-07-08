@@ -207,6 +207,10 @@ input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var
 .lb th{font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
 .lb td{padding:10px;border-bottom:1px solid var(--line)}
 .lb tr.me td{background:#DCEFF4;color:var(--accent);font-weight:700}
+.lb tr.p1 td{background:#F1E7CE}
+.lb tr.p2 td{background:#F5EEDD}
+.lb tr.p3 td{background:#F9F4E8}
+.lb tr.me.p1 td,.lb tr.me.p2 td,.lb tr.me.p3 td{background:#DCEFF4}
 .lb td.mon{color:var(--green)}
 
 /* ---------- telemetry drawer ---------- */
@@ -450,6 +454,20 @@ input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var
   <div class="row section-gap" id="lbTabs"></div>
   <div class="row" id="lbScope" style="margin-top:8px"></div>
   <div class="card section-gap"><table class="lb" id="lbTable"></table></div>
+</section>
+
+<!-- DAY CLOSE SUMMARY -->
+<section id="daysum" class="screen">
+  <div class="tag" id="dsTag">Day close</div>
+  <h1 id="dsTitle">End of day</h1>
+  <p class="sub" id="dsSub"></p>
+  <div class="row section-gap" id="dsScope"></div>
+  <div class="card section-gap"><h2 id="dsDayTitle">Day leaderboard</h2><table class="lb" id="dsDayTable"></table></div>
+  <div class="card section-gap" id="dsCumCard" style="display:none"><h2 id="dsCumTitle">Cumulative standings</h2><table class="lb" id="dsCumTable"></table></div>
+  <div class="row section-gap">
+    <button class="btn secondary" id="dsHome">Back to course map</button>
+    <button class="btn secondary" id="dsFull">Open the full leaderboard</button>
+  </div>
 </section>
 
 <!-- FACILITATOR CONSOLE -->
@@ -1997,7 +2015,8 @@ function finish(){
     $("dbPredictCard").style.display="block";
     $("dbPredict").innerHTML = `<i>"${esc(ss.prediction)}"</i><br><br>Did it age well? Hold it against the run: what cost you, and what did the round reward?`;
   } else { $("dbPredictCard").style.display="none"; }
-  $("dbStandings").onclick = ()=>{ renderLB(scn.day ? scn.id : "all"); show("lboard"); };
+  $("dbStandings").textContent = scn.day ? "\uD83D\uDCCA End of Day "+scn.day+" standings \u2192" : "\uD83D\uDCCA Standings \u2192";
+  $("dbStandings").onclick = ()=>{ if(scn.day){ renderDaySummary(scn); show("daysum"); } else { renderLB("all"); show("lboard"); } };
   emit("debrief_view",{});
   hud(); show("debrief");
 }
@@ -2014,33 +2033,36 @@ const LB_BASE={
    the intro course keeps the original per-course leaderboard view. */
 const LBV = { tab:"all", scope:"solo", rows:null };
 function setScope(sc){ LBV.scope=sc; renderLB(); }
-function assembleLB(){
-  const c=COURSES[S.courseId];
-  if(!c.days){
-    const base=LB_BASE[S.courseId]||[];
-    const rows=base.map(r=>({n:r[0],team:r[1],p:r[2],m:r[3],me:false}));
-    (LBV.rows||[]).forEach(r=>{
-      if(S.user && r.profile_id===S.user.id) return;
-      rows.push({n:r.name,team:r.cohort||"No team",p:r.points||0,m:(c.budget+(r.net||0)),me:false});
-    });
-    rows.push({n:(S.avatar?S.avatar.name:S.user.name)+" (you)",team:S.team||"No team",p:Math.round(coursePts()),m:bank(),me:true});
-    return rows.sort((a,b)=>b.p-a.p);
-  }
+/* LBCORE:BEGIN  (pure standings maths: day tabs, overall, and cumulative-through-day) */
+function rowsFor(tab, scope, src, ctx){
   const per={};
-  (LBV.rows||[]).forEach(r=>{
-    if(S.user && r.profile_id===S.user.id) return;   /* the local row is fresher for me */
+  (src||[]).forEach(r=>{
+    if(ctx.meId && r.profile_id===ctx.meId) return;   /* the local row is fresher for me */
     const o=per[r.profile_id]=per[r.profile_id]||{name:r.name,team:r.team,d:{}};
     o.d[r.scenario_id]={p:r.points||0,n:r.net||0};
   });
-  const me={name:S.avatar?S.avatar.name:S.user.name, team:S.team, d:{}, me:true};
-  Object.entries(S.done).forEach(([k,v])=>{ me.d[k]={p:v.bestPts||0,n:v.lastNet||0}; });
-  const rows=Object.values(per).concat([me]).map(o=>{
+  const list=Object.values(per);
+  if(ctx.meId){
+    const me={name:ctx.meName, team:ctx.meTeam, d:{}, me:true};
+    Object.entries(ctx.done||{}).forEach(([k,v])=>{ me.d[k]={p:v.bestPts||0,n:v.lastNet||0}; });
+    list.push(me);
+  }
+  const scopeIds = tab==="all" ? ctx.dayIds
+    : (typeof tab==="string" && tab.indexOf("cum:")===0) ? ctx.dayIds.slice(0, parseInt(tab.slice(4),10)||ctx.dayIds.length)
+    : null;
+  const rows=list.map(o=>{
     let p=0,m=0;
-    if(LBV.tab==="all"){ Object.values(o.d).forEach(x=>{p+=x.p;m+=x.n;}); m=c.budget+m; }
-    else { const x=o.d[LBV.tab]; if(!x) return null; p=x.p; m=x.n; }
+    if(scopeIds){
+      let any=false;
+      scopeIds.forEach(id=>{ const x=o.d[id]; if(x){ p+=x.p; m+=x.n; any=true; } });
+      if(!any && !o.me) return null;                 /* the local player always sees their own row */
+      m=ctx.budget+m;
+    } else {
+      const x=o.d[tab]; if(!x) return null; p=x.p; m=x.n;
+    }
     return {n:o.name+(o.me?" (you)":""), team:o.team||"No team", p:Math.round(p), m, me:!!o.me};
   }).filter(Boolean);
-  if(LBV.scope==="team"){
+  if(scope==="team"){
     const t={};
     rows.forEach(r=>{
       if(r.team==="No team") return;
@@ -2053,14 +2075,71 @@ function assembleLB(){
   }
   return rows.sort((a,b)=>b.p-a.p || b.m-a.m);
 }
+/* LBCORE:END */
+function lbCtx(){
+  const c=COURSES[S.courseId];
+  return { days:!!c.days, budget:c.budget,
+    dayIds:scnList().filter(x=>x.day).map(x=>x.id),
+    done:S.done, meId:S.user?S.user.id:null,
+    meName:S.avatar?S.avatar.name:(S.user?S.user.name:""), meTeam:S.team };
+}
+function assembleLB(){
+  const c=COURSES[S.courseId];
+  if(!c.days){
+    const base=LB_BASE[S.courseId]||[];
+    const rows=base.map(r=>({n:r[0],team:r[1],p:r[2],m:r[3],me:false}));
+    (LBV.rows||[]).forEach(r=>{
+      if(S.user && r.profile_id===S.user.id) return;
+      rows.push({n:r.name,team:r.cohort||"No team",p:r.points||0,m:(c.budget+(r.net||0)),me:false});
+    });
+    rows.push({n:(S.avatar?S.avatar.name:S.user.name)+" (you)",team:S.team||"No team",p:Math.round(coursePts()),m:bank(),me:true});
+    return rows.sort((a,b)=>b.p-a.p);
+  }
+  return rowsFor(LBV.tab, LBV.scope, LBV.rows, lbCtx());
+}
+function paintRows(elId, rows, o){
+  const medal=i=> o.medals ? (i===0?"\uD83E\uDD47 ":i===1?"\uD83E\uDD48 ":i===2?"\uD83E\uDD49 ":"") : "";
+  $(elId).innerHTML =
+    `<tr><th>#</th><th>${o.team?"Team":"Player"}</th><th>${o.team?"Members":o.cohortHead}</th><th>${o.team?"Avg points":"Points"}</th><th>${o.moneyHead}</th>${o.rankCol?"<th>Rank</th>":""}</tr>`+
+    rows.map((r,i)=>`<tr class="${r.me?"me":""}${o.medals&&i<3?" p"+(i+1):""}"><td>${medal(i)}${i+1}</td><td>${esc(r.n)}</td><td>${esc(r.team)}</td><td>${r.p}</td><td class="mon">${o.all?fmt(r.m):((r.m>=0?"+":"")+fmt(r.m))}</td>${o.rankCol?`<td>${tiers()[rankIndex(r.p,r.m,tiers())][0]}</td>`:""}</tr>`).join("")
+    + (rows.length?"":`<tr><td colspan="6" class="sub" style="padding:14px">No results yet for this view. Standings fill as runs finish.</td></tr>`);
+}
 function paintLB(rows){
   const c=COURSES[S.courseId], all=LBV.tab==="all", team=LBV.scope==="team";
-  const moneyHead = all ? (team?"Avg capital":"Capital") : (team?"Avg day P&L":"Day P&L");
-  const rankCol = all && !team;
-  $("lbTable").innerHTML =
-    `<tr><th>#</th><th>${team?"Team":"Player"}</th><th>${team?"Members":(c.days?"Team":"Cohort")}</th><th>${team?"Avg points":"Points"}</th><th>${moneyHead}</th>${rankCol?"<th>Rank</th>":""}</tr>`+
-    rows.map((r,i)=>`<tr class="${r.me?"me":""}"><td>${i+1}</td><td>${esc(r.n)}</td><td>${esc(r.team)}</td><td>${r.p}</td><td class="mon">${all?fmt(r.m):((r.m>=0?"+":"")+fmt(r.m))}</td>${rankCol?`<td>${tiers()[rankIndex(r.p,r.m,tiers())][0]}</td>`:""}</tr>`).join("")
-    + (rows.length?"":`<tr><td colspan="6" class="sub" style="padding:14px">No results yet for this view. Standings fill as runs finish.</td></tr>`);
+  paintRows("lbTable", rows, { all, team, rankCol: all&&!team, medals:false,
+    moneyHead: all?(team?"Avg capital":"Capital"):(team?"Avg day P&L":"Day P&L"),
+    cohortHead: c.days?"Team":"Cohort" });
+}
+
+/* ---------- day-close summary: the standings moment at 12:00 ---------- */
+const DS = { scn:null, scope:"solo" };
+function dsScope(sc){ DS.scope=sc; dsPaint(); }
+function renderDaySummary(scn){
+  DS.scn=scn;
+  $("dsTag").textContent = scn.title+" · day close";
+  $("dsTitle").textContent = scn.day<3 ? "End of Day "+scn.day : "End of Day 3 · the final word";
+  $("dsSub").textContent = scn.day===1
+    ? "Day 1 in the books. Points from best attempts, the day's P&L alongside. The cumulative race opens tomorrow."
+    : scn.day===2
+    ? "Two mornings down. Today's round first, then the cumulative standings going into the final day."
+    : "The programme is complete. Today's round first, then the final cumulative ranking across all three days.";
+  dsPaint();
+  sbFetch("/leaderboard_days?course_id=eq." + encodeURIComponent(S.courseId) + "&select=scenario_id,profile_id,name,team,points,net", {headers:{"Prefer":""}})
+    .then(rows => { if(rows){ LBV.rows=rows; dsPaint(); } });
+}
+function dsPaint(){
+  const scn=DS.scn; if(!scn) return;
+  const team=DS.scope==="team", ctx=lbCtx();
+  $("dsScope").innerHTML = ["solo","team"].map(sc=>`<button class="btn${DS.scope===sc?"":" secondary"}" style="padding:6px 13px;font-size:.78rem" onclick="dsScope('${sc}')">${sc==="solo"?"Individuals":"Teams"}</button>`).join("");
+  $("dsDayTitle").textContent = "Day "+scn.day+" leaderboard";
+  paintRows("dsDayTable", rowsFor(scn.id, DS.scope, LBV.rows, ctx),
+    { all:false, team, rankCol:false, medals:false, moneyHead: team?"Avg day P&L":"Day P&L", cohortHead:"Team" });
+  if(scn.day>1){
+    $("dsCumCard").style.display="block";
+    $("dsCumTitle").textContent = scn.day===2 ? "Cumulative standings · Days 1 and 2" : "Final ranking · all three days";
+    paintRows("dsCumTable", rowsFor("cum:"+scn.day, DS.scope, LBV.rows, ctx),
+      { all:true, team, rankCol:!team, medals: scn.day===3, moneyHead: team?"Avg capital":"Capital", cohortHead:"Team" });
+  } else { $("dsCumCard").style.display="none"; }
 }
 function renderLB(tab){
   const c=COURSES[S.courseId];
@@ -2261,11 +2340,11 @@ function facStatus(o){
 async function facRefresh(){
   $("facNote").textContent="Fetching the cohort…";
   FAC.maxPts=facMaxPts();
-  const enr = await sbFetch("/enrollments?course_id=eq."+FAC.course+"&select=profile_id,profiles(id,name,team)", {probe:true, headers:{"Prefer":""}});
+  const prof = await sbFetch("/profiles?select=id,name,team,created_at&order=created_at.asc", {probe:true, headers:{"Prefer":""}});
   const ses = await sbFetch("/sessions?course_id=eq."+FAC.course+"&select=profile_id,scenario_id,attempt,composite,points,net,created_at&order=created_at.asc", {probe:true, headers:{"Prefer":""}});
-  FAC.cloud = enr!==null;
+  FAC.cloud = prof!==null;
   const map={};
-  (enr||[]).forEach(e=>{ const pr=e.profiles; if(pr&&pr.name) map[pr.id]={id:pr.id,name:pr.name,team:pr.team||"",d:{}}; });
+  (prof||[]).forEach(pr=>{ if(pr&&pr.name) map[pr.id]={id:pr.id,name:pr.name,team:pr.team||"",created:(pr.created_at||"").slice(0,10),d:{}}; });
   (ses||[]).forEach(r=>{
     const o=map[r.profile_id]; if(!o) return;
     const d=o.d[r.scenario_id]=o.d[r.scenario_id]||{pts:-1,comp:0,net:0};
@@ -2291,8 +2370,8 @@ async function facRefresh(){
   }).sort((a,b)=>b.totalPts-a.totalPts || a.name.localeCompare(b.name));
   FAC.roster.forEach(o=>o.status=facStatus(o));
   $("facNote").textContent = FAC.cloud
-    ? "Live cohort data. Points use each participant's best attempt per day; capital uses their most recent run, matching the standings."
-    : "Cloud unreachable: showing only what this device has seen. Reconnect and refresh before generating final reports.";
+    ? "Live cohort data. Points use each participant's best attempt per day; capital uses their most recent run, matching the standings. Remove deletes a participant and every result they have, after one confirmation, and cannot be undone."
+    : "Cloud unreachable: showing only what this device has seen. Reconnect and refresh before generating reports or removing anyone.";
   renderFacStats(); renderFacTable();
 }
 function renderFacStats(){
@@ -2315,7 +2394,7 @@ function renderFacTable(){
     const st=o.status, stTxt=st==="pass"?"Pass":st==="fail"?"Fail":"Incomplete", stCls=st==="pass"?"pass":st==="fail"?"fail":"inc";
     return `<tr>
       <td>${i+1}</td>
-      <td><b>${esc(o.name)}</b></td>
+      <td><b>${esc(o.name)}</b>${o.created?`<br><span class="sub" style="font-size:.68rem">registered ${esc(o.created)}</span>`:""}</td>
       <td>${esc(o.team||"·")}</td>
       <td>${day("ar_day1")}</td><td>${day("ar_day2")}</td><td>${day("ar_day3")}</td>
       <td><b>${o.totalPts}</b></td>
@@ -2330,11 +2409,26 @@ function renderFacTable(){
         <button class="mini" onclick="facZipOne(${i})">⬇ Report</button>
         <button class="mini" onclick="facPrint(${i})">🖨 Open</button>
         <button class="mini" onclick="facMailOne(${i})">✉ Send</button>
+        <button class="mini" style="border-color:#D89C8B;color:var(--rust)" onclick="facDel(${i})">✕ Remove</button>
       </td></tr>`;
   }).join("");
   $("facTable").innerHTML =
     `<tr><th>#</th><th>Participant</th><th>Team</th><th>D1</th><th>D2</th><th>D3</th><th>Pts</th><th>Score</th><th>Capital</th><th>Rank</th><th>Att /3</th><th>Participation</th><th>Result</th><th>Remarks</th><th>Actions</th></tr>`
     + (rows || `<tr><td colspan="15" class="sub" style="padding:16px">No participants yet. Results appear here as the cohort registers and plays.</td></tr>`);
+}
+function facDel(i){
+  const o=FAC.roster[i]; if(!o) return;
+  if(!FAC.cloud){ $("facNote").textContent="Removing a participant needs the cloud connection. Reconnect and hit Refresh first."; return; }
+  const label=o.name+(o.team?" ("+o.team+")":"");
+  if(!confirm("Remove "+label+" and every result they have?\n\nThis clears them from the cohort, the standings and the reports. It cannot be undone.")) return;
+  $("facNote").textContent="Removing "+o.name+"\u2026";
+  sbFetch("/rpc/facilitator_delete_profile", {method:"POST", headers:{"Prefer":""},
+    body:JSON.stringify({p_id:o.id, p_code:FAC.code})})
+  .then(r=>{
+    if(r===true){ $("facNote").textContent=o.name+" removed from the cohort."; facRefresh(); }
+    else if(r===false){ $("facNote").textContent="The backend refused the removal. Check the console code and try again."; }
+    else { $("facNote").textContent="Removal did not reach the cloud. Reconnect and try again."; }
+  });
 }
 function facRowPack(i){
   const o=FAC.roster[i]; o.status=facStatus(o);
@@ -2428,6 +2522,8 @@ $("pdSkip").onclick=()=>beginRun(S.pendingScn, "");
 $("navHome").onclick=()=>{renderHome();show("home")};
 $("navLB").onclick=()=>{renderLB();show("lboard")};
 $("navOut").onclick=()=>{ $("topbar").classList.remove("show"); $("telebtn").classList.remove("show"); initReg(); show("signin"); };
+$("dsHome").onclick=()=>{renderHome();show("home")};
+$("dsFull").onclick=()=>{renderLB();show("lboard")};
 $("telebtn").onclick=()=>$("teledrawer").classList.toggle("show");
 $("teleClose").onclick=()=>$("teledrawer").classList.remove("show");
 initReg();
