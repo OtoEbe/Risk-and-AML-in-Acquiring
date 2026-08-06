@@ -1,0 +1,6 @@
+# Supabase CLI configuration
+# Project: Understanding Scheme Fees (ref: wskjrcgdhgolahrrmpvs)
+project_id = "understanding-scheme-fees"
+
+[db]
+major_version = 17
