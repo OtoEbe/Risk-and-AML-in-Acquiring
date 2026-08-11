@@ -67,9 +67,9 @@ h2{font-size:1.15rem;margin-bottom:10px}
 .signin-sub{text-align:center;color:var(--dim);font-size:.88rem;margin-bottom:26px}
 .field{margin-bottom:16px}
 .field label{display:block;font-size:.78rem;letter-spacing:.5px;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
-select,.fakeinput,input[type=text],textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:12px 14px;font-size:.95rem;appearance:auto}
+select,.fakeinput,input[type=text],input[type=email],input[type=password],textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:12px 14px;font-size:.95rem;appearance:auto}
 textarea{resize:vertical;min-height:64px;line-height:1.5}
-input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
+input[type=text]:focus,input[type=email]:focus,input[type=password]:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
 .ssobox{margin-top:18px;padding-top:18px;border-top:1px dashed var(--line);text-align:center}
 .ssobox .note{font-size:.75rem;color:var(--faint);margin-top:8px;line-height:1.5}
 #assignNote{font-size:.78rem;color:var(--faint);margin-top:6px;line-height:1.5}
@@ -261,7 +261,7 @@ input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var
 <!-- SIGN IN -->
 <section id="signin" class="screen active">
   <div class="logo">The Payment School <span>Simulator</span></div>
-  <div class="signin-sub">by intreensic · payments theory, put to work</div>
+  <div class="signin-sub">by intreensic · payments theory, put to work · build <b id="buildStamp">v1.1.1</b></div>
   <div class="card" id="regReturn" style="display:none;margin-bottom:14px">
     <h2 style="margin-bottom:4px">Welcome back</h2>
     <p class="sub" id="regReturnSub"></p>
@@ -270,29 +270,72 @@ input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var
       <select id="courseSelR"></select>
     </div>
     <button class="btn" id="continueBtn" style="width:100%">Continue as <span id="regReturnName"></span> →</button>
-    <button class="linkbtn" id="switchBtn" style="width:100%;margin-top:8px">Register a different player</button>
+    <button class="linkbtn" id="switchBtn" style="width:100%;margin-top:8px">Sign out and use a different account</button>
   </div>
   <div class="card" id="regNew">
-    <div class="field">
-      <label>Your name</label>
-      <input type="text" id="regName" maxlength="40" placeholder="e.g. Amara Sule" autocomplete="off">
+    <div class="modeToggle" style="margin-bottom:14px">
+      <button id="tabCreate" class="on" onclick="authTab('create')">Create account</button>
+      <button id="tabSignin" onclick="authTab('signin')">Sign in</button>
     </div>
-    <div class="field">
-      <label>Your team</label>
-      <input type="text" id="regTeam" list="teamList" maxlength="40" placeholder="Type your table's team name, or pick an existing one" autocomplete="off">
-      <datalist id="teamList"></datalist>
-      <div id="assignNote">Everyone at your table registers under the same team name, spelled the same way. Individual scores feed the team standings.</div>
+    <div id="createBox">
+      <div class="field">
+        <label>Your name</label>
+        <input type="text" id="regName" maxlength="40" placeholder="e.g. Amara Sule" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Your team</label>
+        <input type="text" id="regTeam" list="teamList" maxlength="40" placeholder="Type your table's team name, or pick an existing one" autocomplete="off">
+        <datalist id="teamList"></datalist>
+        <div id="assignNote">Everyone at your table registers under the same team name, spelled the same way. Individual scores feed the team standings.</div>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="regEmail" maxlength="255" placeholder="you@company.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="regPw" maxlength="72" placeholder="At least 8 characters" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label>Course</label>
+        <select id="courseSel"></select>
+      </div>
+      <button class="btn" id="enterBtn" style="width:100%">Create account and take your seat →</button>
     </div>
-    <div class="field">
-      <label>Course</label>
-      <select id="courseSel"></select>
+    <div id="signinBox" style="display:none">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="liEmail" maxlength="255" placeholder="you@company.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="liPw" maxlength="72" placeholder="Your password" autocomplete="current-password">
+      </div>
+      <button class="btn" id="liGo" style="width:100%">Sign in →</button>
+      <button class="linkbtn" id="forgotBtn" style="width:100%;margin-top:8px">Forgot password? Email me a reset link</button>
+      <button class="linkbtn" id="mlBtn" style="width:100%;margin-top:4px">Or email me a one-time sign-in link (also verifies your email)</button>
     </div>
-    <button class="btn" id="enterBtn" style="width:100%">Register and take your seat →</button>
+    <div class="sub" id="authNote" style="margin-top:10px;min-height:18px"></div>
     <div class="ssobox">
-      <div class="note">Cohort registration for facilitated delivery. Your name and team go straight to the live standings, so write them the way you want the room to read them. Progress syncs to the cloud when a connection exists and stays on this device when it does not. In production, LMS Single Sign-On replaces this screen.</div>
+      <div class="note">Your account saves progress to the cloud: stop on one device, sign in on another, and resume where you left off. A verification email confirms your address in the background and never blocks play. The first sign-in on a device needs a connection; after that the simulation runs offline and uploads when the network returns.</div>
     </div>
   </div>
   <div style="text-align:center;margin-top:14px"><button class="linkbtn" id="facLink">🔑 Facilitator console</button></div>
+</section>
+
+<!-- PASSWORD RESET (arrives via the email link) -->
+<section id="pwreset" class="screen">
+  <div class="logo">The Payment School <span>Simulator</span></div>
+  <div class="card" style="max-width:430px;margin:0 auto">
+    <h2 style="margin-bottom:4px">Set a new password</h2>
+    <p class="sub">You followed a reset link, so this device is trusted for the next few minutes. Choose the new password and you will be signed straight in.</p>
+    <div class="field" style="margin-top:12px">
+      <label>New password</label>
+      <input type="password" id="pwNew" maxlength="72" placeholder="At least 8 characters" autocomplete="new-password">
+    </div>
+    <button class="btn" id="pwGo" style="width:100%">Save password and continue →</button>
+    <div class="sub" id="pwNote" style="margin-top:10px;min-height:18px"></div>
+  </div>
 </section>
 
 <!-- AVATAR SETUP -->
@@ -370,6 +413,7 @@ input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var
   <div class="tag" id="courseTag"></div>
   <h1 id="courseTitle"></h1>
   <p class="sub" id="courseDesc"></p>
+  <div class="sub" id="verifyStrip" style="display:none;margin-top:6px"></div>
   <div class="rankbar">
     <div>Rank: <span class="tier" id="tierName">Observer</span></div>
     <div class="prog"><i id="tierProg" style="width:0%"></i></div>
@@ -416,6 +460,7 @@ input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var
       <span class="sub" id="hintCost"></span>
     </div>
     <div class="hinttext" id="hintText"></div>
+    <div class="confirmbar" id="lockBar" style="display:none"><button class="btn" id="lockBtn" disabled>Lock it in →</button></div>
     <div class="confirmbar" id="nextBar" style="display:none"><button class="btn" id="nextBtn">Continue →</button></div>
   </div>
 </section>
@@ -565,6 +610,16 @@ input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var
    (plus the BACKEND block below), and the engine reads only from
    those objects. This build ships "Understanding Scheme Fees",
    3 days x 10 calls, Series A. Repurposing guide: see PACK:BEGIN.
+   v1.1 adds ACCOUNTS and SERIES B. Accounts: Supabase Auth over
+   raw REST (email + password, background email verification,
+   password reset), a cloud progress blob per player and course
+   (cross-device resume, mid-run included), token-aware writes
+   under ownership RLS. Series B: 30 parity questions; replays
+   alternate sets, cohort-synchronised by attempt number.
+   v1.1.1: two-step answering (select, then Lock it in, then Next
+   call), progress flush on sign-out and page close (keepalive),
+   a one-time email sign-in link on the sign-in tab, and a build
+   stamp on the sign-in screen so stale caches identify themselves.
    ============================================================ */
 
 /* ============================================================
@@ -595,7 +650,7 @@ input[type=text]:focus,textarea:focus,select:focus{outline:none;border-color:var
    ============================================================ */
 
 const PACK = {
-  version: "v1.0",
+  version: "v1.1.1",
   courseId: "scheme-fees",
   dayIds: ["sf_day1","sf_day2","sf_day3"],
   brand: {
@@ -650,6 +705,190 @@ blurb:"Your first morning owning the scheme-fee line at Arcline Money. Ten calls
 criteria:[{id:"flows",name:"Money flows & roles",w:25},{id:"logic",name:"Charging logic",w:25},{id:"trig",name:"Billing triggers",w:25},{id:"tax",name:"Taxonomy & avoidability",w:25}],
 slos:[{id:"D1-O1",t:"Separate scheme fees from interchange and name who pays whom"},{id:"D1-O2",t:"Classify any fee by its charging logic"},{id:"D1-O3",t:"Read the billing triggers behind an invoice line"},{id:"D1-O4",t:"Sort fee categories into mandatory and avoidable"}],
 bestPath:"Q1 scheme fees and interchange run in opposite directions → Q2 Visa bills the principal member → Q3 four charging shapes, four levers → Q4 declines still bill → Q5 three meters on one tap → Q6 refunds bill, never reverse → Q7 card country against acquirer country → Q8 seven mandatory, the avoidable sits in behaviour → Q9 demand the billing-line detail → Q10 fix the entry-mode mapping tonight.",
+bestPathB:"Q1 the note has the flows backwards → Q2 the billed party is the member → Q3 four charging shapes for the Metal case → Q4 declined attempts still bill → Q5 five billable events on one funding → Q6 promo refunds bill, never reverse → Q7 card country against acquirer country → Q8 control beats refusal → Q9 open the NETWORK ADJUSTMENTS line → Q10 fix the SDK entry-mode default tonight.",
+nodesB:{
+
+Q1:{title:"The board note, marked in red", obj:"D1-O1 · scheme fee vs interchange",
+narr:`Series B, and the desk is yours again. Board pre-read morning. A director's note sits on top of the pack, one line circled in Mara's red ink: <span class="npc">"Interchange is what we pay Visa; the scheme-fee schedule is how they calculate it."</span>\n\nMara slides it across without a word, then adds one: <span class="npc">"Correct him. On paper, kindly, before the meeting."</span>`,
+hint:"Two flows, two directions. Name what Arcline receives and what Arcline pays, and to whom.", hintCrit:"flows",
+choices:[
+ {t:"The note runs backwards. Interchange flows between the banks and reaches us as issuer revenue. Scheme fees are paid to Visa itself, on a published schedule, and we only pay.", q:"best", money:3000, set:{d1_flow_right:true}, goto:"Q2",
+  cons:"The correction goes into the pack as a footnote with a one-line diagram. The director reads it before the meeting and opens with it himself, which is the best possible home for a correction.",
+  why:"Interchange compensates the issuing side and arrives with every purchase our cardholders make. Scheme fees leave the other way, paid to the network for infrastructure, brand and processing under its published schedule. A board that has the directions reversed will misprice every decision built downstream, so the correction is worth a page."},
+ {t:"Close enough for board altitude. Both are network economics, and the pack should focus the room on the total cost line rather than the plumbing that produces it.", q:"ok", down:{flows:1}, money:-1500, goto:"Q2",
+  cons:"The meeting goes fine, and the note survives uncorrected into the minutes, where a reversed money flow now sits on the record waiting for the next strategy debate to quote it.",
+  why:"Altitude is a fine argument for omitting detail and a poor one for preserving error. One flow is revenue and the other is cost; a board that blesses the reversal will eventually resource the wrong lever. Kind precision now is cheaper than unwinding a minuted mistake later."},
+ {t:"The director is right in substance: the schedule is how Visa prices what it takes from members, and interchange is simply the biggest line that schedule produces.", q:"bad", down:{flows:2}, money:-4000, goto:"Q2", mistake:"Endorsed the reversed flow and folded interchange into the fee schedule it does not live in.",
+  cons:"Mara reads your endorsement, caps her pen, and corrects both of you in the meeting from memory. The room moves on; the pack's credibility takes the hit with your name on it.",
+  why:"Interchange is set by scheme frameworks and flows between members; it never appears on Visa's fee schedule as a charge to us, because it is our income. The fee schedule prices network services we consume. Merging the two hands the board a model where the biggest revenue line reads as the biggest cost."},
+ {t:"Decline to correct a director in writing. Flag it verbally to Mara and let seniority handle seniority, since the desk's job is the invoice rather than the org chart.", q:"bad", down:{flows:1}, money:-4000, goto:"Q2", mistake:"Treated a factual correction as a political act and left the error standing in a board pack.",
+  cons:"Mara's reply is short: she asked for a correction, on paper, kindly. The deference reads as either uncertainty about the facts or unwillingness to own the line, and neither is a good look in week two.",
+  why:"The desk owns the scheme-fee facts, and ownership means correcting the record wherever the record is wrong, including upward. A kind, precise, written correction is a professional service to a director, never an affront. Facts deferred become facts adopted."}
+]},
+
+Q2:{title:"The auditors want a map", obj:"D1-O1 · who bills whom",
+narr:`Interim audit week. <b>Halden & Frey</b>, the external auditors, send one question ahead of fieldwork: <span class="npc">"For the scheme-fee expense line, identify the billed party, the invoice path, and where merchant-side scheme charges sit relative to your entity."</span>\n\nDele forwards it: <span class="npc">"Write it once, properly, and we reuse it every year."</span>`,
+hint:"Trace the invoice from the network to us, then place the merchant side outside it.", hintCrit:"flows",
+choices:[
+ {t:"Visa invoices its principal member, Harbourline, which allocates our BIN activity to us under the sponsor agreement. Acquirer-side charges bill acquirers and reach merchants as deductions, never touching our line.", q:"best", money:3500, goto:"Q3",
+  cons:"The auditors accept the map without a follow-up, which Dele notes has never happened before. It goes into the permanent file as the standing answer.",
+  why:"The billed party is a contract fact: the scheme invoices members, our exposure arrives through the sponsor allocation, and the merchant side of the model settles through acquirers entirely outside our books. Audit answers built on the actual invoice path survive every future question about completeness and cutoff."},
+ {t:"Keep the answer to our own ledger: we pay Harbourline's allocation monthly, and everything upstream of the sponsor is Harbourline's business rather than an audit matter for us.", q:"ok", down:{flows:1}, money:-1500, goto:"Q3",
+  cons:"Half an answer, and the auditors notice: the follow-up asks how management validates that the allocation reflects charges actually incurred, which is exactly the upstream visibility the first answer skipped.",
+  why:"An expense sourced from a related invoice chain invites completeness questions, and stopping the map at the sponsor invites them faster. Showing the full path, network to member to programme, is what demonstrates the allocation is checkable rather than merely payable."},
+ {t:"Arcline is the billed party in substance: Visa raises the lines against our BINs, so the invoice is effectively ours and Harbourline is a pass-through address on it.", q:"bad", down:{flows:2}, money:-4000, goto:"Q3", mistake:"Promoted an economic allocation into a legal billing relationship for the auditors.",
+  cons:"Fieldwork unravels it in an hour: no Visa invoice names Arcline, and the working papers now need the corrected map plus a note on why management's first answer differed from the contracts.",
+  why:"BIN-level attribution is how charges are calculated, never who is billed. The member holds the invoice and the legal obligation; we hold a contractual allocation. Auditors live on exactly this distinction, and blurring it costs credibility on every adjacent answer."},
+ {t:"Merchant-side scheme charges partially reach us through interchange netting, so the honest map shows both sides of the model landing in our expense line at different weights.", q:"bad", down:{flows:1}, money:-4000, goto:"Q3", mistake:"Routed acquirer-side charges into the issuer's expense line through an invented netting path.",
+  cons:"The auditors ask for the netting mechanism by name, and there is none to give. The map comes back annotated with a polite question mark that takes two meetings to remove.",
+  why:"Acquirer-side fees are calculated and deducted on the acquiring side of the model, full stop. Interchange is a separate flow, and it arrives as our revenue rather than carrying anyone's fees toward us. Inventing cross-model plumbing to sound thorough builds an expense line no contract supports."}
+]},
+
+Q3:{title:"Pricing the Metal case", obj:"D1-O2 · charging logic",
+narr:`The <b>Arcline Metal</b> premium card business case lands for review. Finance has projected the new scheme costs as one blended annual number. Mara wants it rebuilt: <span class="npc">"Sort the projected lines by how each one charges. The board approves levers, never lump sums."</span>\n\nOn the projection: per-authorization message charges, a value-based international assessment, the annual card-programme participation fee, and a provision for threshold penalties.`,
+hint:"The four shapes are already hiding in the projection. Name each one and its lever.", hintCrit:"logic",
+choices:[
+ {t:"Rebuild it in four shapes: fixed per transaction, ad valorem on value, flat periodic overhead, and event-driven penalties. Each shape moves on a different lever the board can fund.", q:"best", money:4000, goto:"Q4",
+  cons:"The case comes back with four cost curves instead of one number, and the board conversation changes: they approve the token routing lever and the monitoring spend by name, because they can finally see what each buys down.",
+  why:"Per-transaction lines scale with Metal's transaction count, ad valorem lines with its premium ticket sizes, fixed lines with the calendar regardless of success, and behavioural lines with operating discipline. A launch case sorted by charging logic shows which costs are volume destiny and which are management choices, which is the decision a board exists to make."},
+ {t:"Split it transactional against fixed and stop there. A launch case needs a cost envelope more than a taxonomy, and two buckets keep the model auditable.", q:"ok", down:{logic:1}, money:-2000, goto:"Q4",
+  cons:"The envelope holds until the first behavioural provision fires inside the transactional bucket, and nobody can say whether Metal's economics slipped or a one-off penalty landed. The two-bucket model cannot answer.",
+  why:"Two buckets blend the distinction the launch will actually test: value-driven costs versus count-driven costs inside transactional, and scheduled overhead versus avoidable penalty inside fixed. Those seams are where launch models go wrong, and the four-shape sort is what makes drift diagnosable."},
+ {t:"Keep the blended number and sensitivity-test it hard: plus and minus thirty percent covers any classification detail the sort would surface, at a fraction of the effort.", q:"bad", down:{logic:2}, money:-4500, goto:"Q4", mistake:"Replaced cost structure with cost range. A sensitivity band explains nothing about which lever moves the number.",
+  cons:"The board asks what drives the low case versus the high case, and the honest answer is the same blended guess wearing two hats. The case gets deferred a cycle for exactly the rebuild Mara requested.",
+  why:"Sensitivity analysis stress-tests a model that already has structure; it cannot substitute for structure. A range around an unsorted number tells the board how wrong the guess might be, never what management would do about it. Shape first, then stress the shapes."},
+ {t:"Sort the projection by fee size and mark the top five lines for negotiation with the scheme before launch, since a premium programme has pricing leverage to spend.", q:"bad", down:{logic:1}, money:-4500, goto:"Q4", mistake:"Ranked by size again and aimed a launch at negotiating a published schedule.",
+  cons:"Ingrid confirms what the schedule already says: the published lines bill as published, and incentive conversations follow volume that a not-yet-launched card cannot show. The launch plan loses a month learning it.",
+  why:"Size ranking without charging logic repeats the Day 1 lesson at higher stakes, and the negotiation premise repeats another: schedules execute, incentives negotiate, and leverage arrives after volume exists. A launch case is where classification errors compound fastest, because every projected line is still a choice."}
+]},
+
+Q4:{title:"52,000 attempts, one invoice", obj:"D1-O3 · attempts bill",
+narr:`Quarterly review with <b>Kelburn Fitness</b>, the subscription partner whose memberships auto-reload wallets. Their dashboard celebrates persistence: <b>52,000 declined authorization attempts</b> retried across the quarter, recovering 9 percent eventually.\n\nTheir ops lead is upbeat: <span class="npc">"Declines cost nothing, so every recovery is pure upside. We can push retries harder if you like."</span>\n\nDele looks at you across the call.`,
+hint:"Price the 52,000 first, then judge the 9 percent. The meter runs on messages, never on outcomes.", hintCrit:"trig",
+choices:[
+ {t:"Every one of those attempts can bill, declined or approved, and the pattern feeds scheme ratios on our side. Price the 52,000 into the recovery maths before pushing anything harder.", q:"best", money:4000, set:{d1_trigger_map:true}, goto:"Q5",
+  cons:"The trigger map gets its first partner-facing outing. Repriced honestly, the ninth-attempt recoveries turn out to cost more than they recover, and the retry curve gets a haircut nobody mourns.",
+  why:"Authorization requests generate fees when sent regardless of outcome, so a retry engine's true economics are recovery value minus per-attempt cost minus the ratio damage accumulating on the issuer relationship. A partner celebrating gross recovery is spending our money to make their dashboard green, until the map prices it."},
+ {t:"Let the quarter stand and add attempt costs to the next partner report, so the pricing lands with data rather than in the middle of their victory lap.", q:"ok", down:{trig:1}, money:-1500, goto:"Q5",
+  cons:"Diplomatic, and another quarter of metered attempts ships at full price while the report gets drafted. The eventual conversation is the same one, ninety days more expensive.",
+  why:"Timing courtesy has a per-message price here. The correction requires no new data, only the trigger table, and every retry between now and the polished report bills at the same rate. Partners respect a priced answer in the meeting more than a deck after it."},
+ {t:"They are right on the economics: no completed sale means no fee event, so recovery percentage is the only number that matters and harder retries are free option value.", q:"bad", down:{trig:2}, money:-4500, goto:"Q5", mistake:"Priced 52,000 billable attempts at zero and invited more of them.",
+  cons:"The invoice disagrees at scale: the attempt lines land next cycle, the push-harder setting multiplies them, and the recovery percentage the partner celebrated shrinks once its true cost sits beside it.",
+  why:"The billing trigger is the message sent to the network. Declines bill, retries of declines bill again, and the schedule reserves its penalty lines for exactly the persistent patterns this celebrates. Free option value is what a cost looks like before somebody reads the meter."},
+ {t:"The cost sits with Kelburn, since their engine initiates the attempts. Our side only meters completed wallet funding, so their retry curve is their line to manage.", q:"bad", down:{trig:1}, money:-4500, goto:"Q5", mistake:"Assigned the meter to the party pressing the button instead of the party whose traffic it is.",
+  cons:"The allocation arrives addressed to Arcline as always, because the network meters our merchant-of-record traffic without asking whose engine pressed retry. Recharging Kelburn is a contract conversation, and it starts after we have already paid.",
+  why:"Scheme fees follow the traffic's owner in the network's eyes, and wallet top-ups process under our arrangements whoever initiates the retry. Passing costs to a partner is a commercial-terms exercise done after the fact; the billing itself lands on our line first, which is why the pricing must too."}
+]},
+
+Q5:{title:"One funding, five meters", obj:"D1-O3 · events, never sales",
+narr:`Zainab's teaching case for the new analysts, and she hands it to you. A customer funds a wallet on Tuesday: 3-D Secure challenge served, customer abandons at the bank app. Wednesday they return: <b>new 3DS challenge, authorization approved, clearing that night</b>.\n\n<span class="npc">"Finance counted one sale,"</span> she says. <span class="npc">"Count the billable events for the room."</span>`,
+hint:"Walk both days separately. Abandonment stops the sale, never the meter behind it.", hintCrit:"trig",
+choices:[
+ {t:"Tuesday billed an authentication that sold nothing. Wednesday billed a second authentication, an authorization, and a clearing. One sale, four metered events across two days.", q:"best", money:4000, goto:"Q6",
+  cons:"The room recounts it themselves and lands on four. Zainab pins the case beside the trigger map: one revenue line, four cost events, and an abandonment that was never free.",
+  why:"Authentication bills per request independent of what follows, so the abandoned Tuesday challenge is a complete billable event with zero revenue attached. Wednesday's journey then meters normally through its own authentication, authorization and presentment. Counting events instead of sales is the only arithmetic that matches the invoice."},
+ {t:"Call it three events worth modelling: Wednesday's full journey. Tuesday's abandonment rounds away at portfolio level, and the model stays simple for the analysts.", q:"ok", down:{trig:1}, money:-2000, goto:"Q6",
+  cons:"Simple, and structurally short: abandonment runs double digits on challenge flows, so the rounded-away Tuesdays are a standing percentage of the authentication line the model now cannot explain.",
+  why:"Abandoned authentications are a systematic share of traffic, never noise, and they bill at the same rate as successful ones. A model that drops them undercounts the authentication line by exactly the abandonment rate, which is the kind of steady bias that survives every reconciliation until someone counts events."},
+ {t:"Two events: the approved authorization and its clearing. Authentication is a security step inside the journey, priced into the network relationship rather than metered per use.", q:"bad", down:{trig:2}, money:-4500, goto:"Q6", mistake:"Filed a per-request billable service under ambient relationship pricing.",
+  cons:"The schedule line reads per authentication, with separate rates by credential, which is as metered as pricing gets. The two-event count fails the first invoice it meets.",
+  why:"Authentication carries its own fee per request, distinct rates for PAN and token, billable whether or not authorization ever happens. Nothing about it is ambient. The deck's warning is this exact case: a transaction may authenticate, then not authorize, and both events bill."},
+ {t:"Depends when the customer decided. If Wednesday completes the same intent, the scheme treats the journey as one continued transaction and meters it once end to end.", q:"bad", down:{trig:1}, money:-4500, goto:"Q6", mistake:"Metered customer intent. The network meters messages, and Tuesday's messages already billed.",
+  cons:"There is no intent field in an authentication request. Tuesday's challenge billed on Tuesday; Wednesday started fresh because the rails have no memory of wishes, only of messages.",
+  why:"Journeys are a product concept; the network sees discrete messages, each priced on arrival. No mechanism links Tuesday's abandonment to Wednesday's success, and no fee reverses because a customer eventually came back. Intent-based counting is story-telling; the meter keeps arithmetic."}
+]},
+
+Q6:{title:"The promo that came back", obj:"D1-O2 · type & credential",
+narr:`Marketing's flash promo mispriced a bundle, and support has processed <b>9,300 refunds</b> in ten days. Finance nets them against the promo's gross sales and books the scheme fees as a wash: <span class="npc">"Money out, money back, fees cancel."</span>\n\nMara flags the line in the close pack and routes it to you: <span class="npc">"Does the schedule agree?"</span>`,
+hint:"Ask what a refund is on the rails: an eraser, or a second transaction with its own treatment.", hintCrit:"logic",
+choices:[
+ {t:"The schedule disagrees twice. The original sales' fees are earned and kept, and each refund is its own transaction type with its own treatment. The wash is actually two fee events per bundle.", q:"best", money:3500, goto:"Q7",
+  cons:"The close pack gets a corrected line and a new standing note: promos are priced with two-way fee traffic in the model. Marketing's next flash sale carries a refund-rate assumption for the first time.",
+  why:"Refunds move money and messages back through the same rails, and the rails meter both directions: original fees stand, refund treatment applies on the return leg, generally lighter but never negative. A promo with a 40 percent return rate is a fee event storm wearing a marketing costume, and netting hides it precisely when pricing needs it."},
+ {t:"Book it as a wash for this close and add a refund-fee accrual line from next month, so the correction lands cleanly at quarter boundary rather than reopening a pack.", q:"ok", down:{logic:1}, money:-1500, goto:"Q7",
+  cons:"The close stays tidy and the month stays wrong, and the accrual that starts next cycle quietly confirms the current one misstated the line. Small money, poor precedent.",
+  why:"A known misstatement carried for calendar convenience is a debt to the next reviewer who finds it. The correction is one line now or a reconciling explanation forever. Fee treatments are facts of the schedule, and packs are cheapest to fix while they are open."},
+ {t:"Fees cancel in substance: the network earned its fee on the sale and returning the sale returns the fee. One economic event, one net fee, and the wash stands as booked.", q:"bad", down:{logic:2}, money:-4000, goto:"Q7", mistake:"Reversed fees that never reverse, this time at 9,300 units of scale.",
+  cons:"The next allocation prices the theory: original fees present, refund fees added, nothing cancelled. The wash unwinds into a five-figure variance with a marketing campaign's name on it.",
+  why:"There is no fee-reversal mechanism attached to refunds anywhere on the schedule. The network performed two services, sale processing and return processing, and billed both. Substance-over-form intuitions from accounting do not bind a fee engine that meters messages."},
+ {t:"Refund fees attach only where the refund signals failure, like disputes. A goodwill promo correction is scheme-neutral because the network prices risk events, never courtesy.", q:"bad", down:{logic:1}, money:-4000, goto:"Q7", mistake:"Made motive the billing trigger again. Type sets treatment; courtesy sets nothing.",
+  cons:"The schedule has no courtesy field either. The refund lines bill by transaction type exactly as the trigger table says, and the dispute lifecycle remains a separate, additional fee family this promo thankfully never met.",
+  why:"Fault-sensitive pricing lives exclusively in the penalty and dispute categories. Ordinary transaction treatment is mechanical: message type and credential type in, fee treatment out. A theory that needs the network to read intentions fails on contact with any invoice."}
+]},
+
+Q7:{title:"The Berlin subscription", obj:"D1-O3 · geography & currency",
+narr:`A Metal cardholder living in <b>Accra</b> subscribes to a design tool whose <b>acquirer sits in Berlin</b>, priced in <b>US dollars</b>, settled to the scheme in euros. Support has flagged the cardholder's complaint about a "foreign fee" on a "local purchase", and Dele wants the classification nailed before the reply goes out.\n\n<span class="npc">"Domestic or cross-border, what decides it, and what stacks on top?"</span>`,
+hint:"Two country fields decide the status. The currencies then stack their own layer on whatever geography said.", hintCrit:"trig",
+choices:[
+ {t:"Card country against the acquirer's country makes it cross-border, whatever the storefront feels like. The dollar pricing and euro settlement then stack FX treatment on top of that status.", q:"best", money:4000, goto:"Q8",
+  cons:"The reply to the cardholder writes itself, and the classification note goes into the support playbook: website language and local pricing decide nothing; the acquirer's flag does.",
+  why:"Cross-border status compares the card's issuing country with the acquirer's country, both stamped in the transaction records. The transaction currency and settlement currency then drive their own fee layer on top. A storefront can look perfectly local while its acquiring sits a continent away, and the schedule prices the plumbing, never the look."},
+ {t:"Classify the subscription cross-border by default and move on. Recurring merchants drift acquirers without notice, so worst-case tagging at least keeps the pricing safe.", q:"ok", down:{trig:1}, money:-2000, goto:"Q8",
+  cons:"Safe, and permanently overpriced for every merchant whose acquiring is genuinely local. The corridor book carries a phantom premium the correct two-field check would delete in a keystroke.",
+  why:"Acquirer drift is real and the answer is reading the field per transaction, which the records provide, rather than assuming the expensive case forever. Precision here is free at processing time; conservatism is a standing tax on the product's pricing."},
+ {t:"The cardholder lives in Accra and clicked from Accra, so the experience is domestic and the classification should follow the customer the product actually serves.", q:"bad", down:{trig:2}, money:-4500, goto:"Q8", mistake:"Classified by customer experience. The scheme reads card country against acquirer country.",
+  cons:"The complaint reply built on that theory promises a refund of a fee that was correctly charged, and support gets to send a second, worse email walking it back.",
+  why:"Experience is a product lens; classification is a records lens. The cardholder's location and feelings appear nowhere in the fee logic, while the issuing country and acquiring country appear in every record. Empathy for the complaint and accuracy about the fee are two different sentences in the same reply."},
+ {t:"Dollar pricing makes it international by definition: currency is the operative signal, and the geography fields are legacy metadata the modern schedule has moved past.", q:"bad", down:{trig:1}, money:-4500, goto:"Q8", mistake:"Promoted currency to sole classifier and retired the fields that actually decide the rate.",
+  cons:"Two identical dollar-priced subscriptions, one acquired in Accra and one in Berlin, price differently on the next invoice, and the currency-only theory has no sentence to explain why.",
+  why:"Currency drives the FX layer, and only that layer. The status underneath belongs to the country pair, unretired and load-bearing across the schedule. Fee models with one classifier where the schedule uses two fail exactly at the transactions worth the most."}
+]},
+
+Q8:{title:"The cost-cut mandate", obj:"D1-O4 · mandatory vs avoidable",
+narr:`Cost review season. The board's mandate memo asks every function for lines it can simply stop paying, and the scheme-fee taxonomy is on Arcline's list with a question mark.\n\nMara sets the thirteen categories on the table one more time: <span class="npc">"Give the committee the honest split. What can we refuse, what can we shrink, and where does the real money move?"</span>`,
+hint:"Seven boxes keep the lights on. The money that moves sits in behaviour and subscriptions.", hintCrit:"tax",
+choices:[
+ {t:"Seven categories are the price of operating and cannot be refused, three are mixed, and the money that moves sits in optional subscriptions and penalty behaviour. Control beats refusal everywhere.", q:"best", money:4500, goto:"Q9",
+  cons:"The committee gets a split it can action: cancel-by-date for two subscriptions, owner-per-penalty for the behavioural lines, and silence where refusal was never real. Arcline's page survives the mandate meeting untouched.",
+  why:"Authorization, clearing, authentication, cross-border, money movement, market development and licensing are mandatory to operate under the brand; products, disputes and fraud tools are mixed; reports and services are optional; penalties are avoidable outright. The honest answer to a refusal mandate is that scheme money is managed through discipline, and the committee funds discipline."},
+ {t:"Offer the committee the transactional and non-transactional split, and volunteer the non-transactional pile for cuts since that is where discretionary spending lives.", q:"ok", down:{tax:1}, money:-2000, goto:"Q9",
+  cons:"The pile gets cut where it can be, and the larger transactional pile escapes review entirely, tier effects and classification drift included, because the two-bucket frame told the committee it was untouchable.",
+  why:"Discretion does cluster in the non-transactional pile, and the frame still undersells the truth: transactional lines respond to classification, routing, credential mix and ticket design. A mandate answered with half the levers is half answered, and the committee never knows what it missed."},
+ {t:"Commit to renegotiating the top categories with the scheme: a cost mandate is exactly the leverage moment, and published rates have always been the opening position.", q:"bad", down:{tax:2}, money:-5000, goto:"Q9", mistake:"Promised the committee a negotiation the schedule does not offer.",
+  cons:"The commitment goes into the mandate tracker, ages badly through two quarters of unchanged published rates, and dies quietly in a footnote that costs more credibility than the honest answer would have.",
+  why:"The schedule bills as published; flexibility lives in incentive agreements, volume tiers and structural choices, all earned rather than demanded. Committing to refusal-by-negotiation converts a knowledge gap into a tracked deliverable that can only fail publicly."},
+ {t:"Report the category as fully fixed: network fees are the cost of being a card programme, and the mandate's energy is better spent on lines management actually controls.", q:"bad", down:{tax:1}, money:-5000, goto:"Q9", mistake:"Surrendered the avoidable third to dodge a committee conversation.",
+  cons:"The committee accepts it, the subscriptions renew unexamined, the penalty lines keep their nobody, and the one function that could have shown real controllable savings reported none on principle.",
+  why:"Fully fixed is false in both directions: subscriptions have cancellation dates and every behavioural penalty has a named preventer. A mandate is the easiest funding a control programme ever gets, and declaring helplessness wastes the one meeting where discipline gets budget."}
+]},
+
+Q9:{title:"The adjustments line", obj:"D1-O1 · visibility",
+narr:`Month-end, and the Harbourline allocation carries a new passenger: <b>"NETWORK ADJUSTMENTS · $23,700"</b>, no billing lines, no description. Ingrid is on leave; her stand-in answers cheerfully: <span class="npc">"Period-end true-ups from Visa's side, several small items netted. Most programmes just book it."</span>\n\nThe close deadline is Thursday.`,
+hint:"The blend argument returns wearing a new name. The first move is still the same one.", hintCrit:"flows",
+choices:[
+ {t:"Ask for the billing-line detail behind the adjustments, as a standing requirement rather than a favour. A true-up we cannot decompose is a number we cannot verify, at any size.", q:"best", money:4500, set:{d1_asked_detail:true}, goto:"Q10",
+  cons:"The stand-in finds the extract in twenty minutes, because it always existed. Nineteen items, two of them belonging to another programme's BIN range, and $6,100 comes off the allocation before Thursday.",
+  why:"Blends recur under new names because netting is convenient for the sender, and the answer is structural: line-level detail as a standing term, not a per-incident request. Every unexplained aggregate accepted trains the counterparty; every decomposition demanded trains them differently. The two misallocated items are the argument, found in the first extract ever requested."},
+ {t:"Book it for Thursday's close and raise the detail request for next cycle, since a $23,700 accrual against a known counterparty is hardly a close-stopper.", q:"ok", down:{flows:1}, money:-1500, goto:"Q10",
+  cons:"The close lands on time, the detail arrives next month, and the two misallocated items get recovered a cycle late, with the payment deadline's leverage already spent.",
+  why:"Booking under time pressure is defensible accounting; the cost is positional. Exceptions raised before payment resolve as adjustments; raised after, they resolve as claims. The extract took twenty minutes, which is less time than the accrual memo."},
+ {t:"Book it as presented. Period-end true-ups are normal between members and programmes, and pulling every thread on leave-cover week reads as distrust, not diligence.", q:"bad", down:{flows:2}, money:-5000, set:{d1_took_blend:true}, goto:"Q10", mistake:"Accepted a second unexplained blend, this time with someone else's charges inside it.",
+  cons:"The $6,100 of misallocated items books quietly into Arcline's cost base, and next period the adjustments line returns fatter, because netting that passes unchallenged always does.",
+  why:"True-ups are normal; opaque ones are optional. The distrust framing inverts the professional reality: counterparties respect programmes that reconcile, and the deference theory just paid $6,100 for a smoother phone call. Visibility declined compounds exactly like visibility demanded, in opposite directions."},
+ {t:"Reject the line from the allocation until Harbourline substantiates it, and let Thursday's close run short by $23,700 as the forcing function the detail request needs.", q:"bad", down:{flows:1}, money:-5000, goto:"Q10", mistake:"Turned an information request into a payment dispute and broke the close to make a point.",
+  cons:"Finance restores the line within the hour because the close cannot ship unbalanced over a query, and the escalation memo now records a payment refusal where a twenty-minute extract request would have sat.",
+  why:"The exception ladder exists to keep information problems from becoming payment problems, and skipping rungs converts leverage into liability. Book with a query flag, demand the detail, correct on the evidence: that sequence recovers the money and keeps the agreement intact. Refusal recovers nothing faster and risks everything else."}
+]},
+
+Q10:{title:"The default nobody chose", obj:"D1-O4 · entry-mode integrity",
+narr:`The new wallet app release ships tonight. In the release notes, one line from the payments SDK config: top-up clearing records will carry a <b>mail-order entry mode</b>, inherited from the vendor's sample configuration. The authorizations go out as e-commerce.\n\nThe release manager is unbothered: <span class="npc">"It cleared QA. Entry mode is cosmetic to the user, and we can patch the config next sprint."</span>`,
+hint:"QA tested the user. The fee engine reads the record, and the record is about to disagree with its own authorization.", hintCrit:"tax",
+choices:[
+ {t:"Entry mode in clearing drives the fee classification, and mismatched against the auth it misqualifies rates and invites integrity fees. The config ships fixed tonight or the release waits.", q:"best", money:5000, set:{d1_entrymode_fix:true}, goto:"END",
+  cons:"The SDK config is a four-line change, verified against a staging batch before midnight. The release ships on time with records that tell the truth, and Day 1 closes with the second template bug of its kind caught at the door.",
+  why:"Entry mode as submitted in clearing is a core billing classifier, and an auth-to-clearing mismatch is both a misqualification risk and a pattern the integrity programmes profile. Cosmetic-to-the-user is the exact blind spot that prices batches wrong at scale. Release gates exist for defects that bill; this is one."},
+ {t:"Ship tonight and patch next sprint as proposed, logging the misqualification exposure as an accepted release risk with a dollar estimate attached.", q:"ok", down:{tax:1}, money:-2000, goto:"END",
+  cons:"The risk log entry is honest and the sprint is long: three weeks of top-up volume clears as mail order, the estimate proves light, and an integrity query arrives asking about the auth-to-clearing pattern the log predicted.",
+  why:"Accepted-risk framing is the grown-up version of the mistake rather than its absence. The fix is hours and the exposure is per-record at portfolio volume, so the trade only looks balanced before multiplication. Release pressure is real; so is a fee engine reading every wrong field, nightly."},
+ {t:"The release manager has it right: the sale is identical from every angle that matters, and a metadata field on the clearing record cannot change what the customer bought.", q:"bad", down:{tax:2}, money:-5000, goto:"END", mistake:"Called the billing classifier metadata, one release after learning the record is the price.",
+  cons:"The fee engine prices the field, the batch reprices wrong from night one, and the mismatch against e-commerce auths flags a pattern that reads, from the network's side, like channel misreporting.",
+  why:"What the customer bought sets the revenue; what the record says sets the fees. Entry mode decides classification, and mail-order coding on e-commerce traffic is a misqualification factory with an integrity-programme audience. The lesson repeats because defaults keep shipping it."},
+ {t:"Hold the vendor accountable instead: their sample config caused it, so route the exposure to them and let the commercial contract fund whatever fees arrive meanwhile.", q:"bad", down:{tax:1}, money:-5000, goto:"END", mistake:"Aimed at the vendor while the member's own traffic misbills nightly. The network does not read contracts.",
+  cons:"The vendor accepts a ticket into their backlog, the fees arrive on Arcline's allocation regardless, and the recharge claim eventually settles for a fraction of the exposure, months after a four-line fix would have prevented all of it.",
+  why:"Scheme liability follows the member's traffic; vendor liability follows the contract, later and partially. The two run on different clocks, and only one of them bills nightly. Stop the records first, then pursue the vendor from a position of contained damage rather than accumulating proof."}
+]}
+
+},
 nodes:{
 
 Q1:{title:"08:05, one page on the desk", obj:"D1-O1 · scheme fee vs interchange",
@@ -842,6 +1081,190 @@ blurb:"The Visa fee schedule itself. The four-level hierarchy and the thirteen l
 criteria:[{id:"arch",name:"Schedule navigation",w:25},{id:"silent",name:"Silent cost lines",w:25},{id:"auth",name:"Authorization integrity",w:25},{id:"settle",name:"Clearing & settlement discipline",w:25}],
 slos:[{id:"D2-O1",t:"Navigate category, group, fee name and billing line"},{id:"D2-O2",t:"Price tiered and outcome-blind fees on real traffic"},{id:"D2-O3",t:"Control residency, authentication and token cost"},{id:"D2-O4",t:"Prevent the behavioural penalty lines"}],
 bestPath:"Q1 hierarchy down to the top 13 lines → Q2 the 24.75-cent floor under a $6.40 ticket → Q3 fees bill attempts, never value → Q4 purge the sleeping records → Q5 move 3DS onto tokens → Q6 watch MAR weekly by BIN → Q7 retire code 05 → Q8 hard-stop Category 1 retries → Q9 daily auth-to-clearing matching → Q10 fund the CPD and build the buffer.",
+bestPathB:"Q1 hierarchy first, then the top 13 → Q2 the floor still owns an $8.90 ticket → Q3 the campaign bought 300,000 billable nothings → Q4 purge the promo watchlist → Q5 Metal authenticates on tokens → Q6 watch the launch BIN weekly → Q7 remap the migrated host's 05s → Q8 wall off Kelburn's Category 1 retries → Q9 match the cutover replay daily → Q10 fund the sweep gap and codify the buffer.",
+nodesB:{
+
+Q1:{title:"Lena meets the schedule", obj:"D2-O1 · the hierarchy",
+narr: (ss)=>`Series B, morning two. <b>Lena Voss</b>, the new fee analyst, opens the schedule for the first time and visibly deflates: <b>17 categories, 136 groups, 208 fee names, 2,648 billing lines</b>. ${ss.carry.d1_asked_detail?'The line-level feed you demanded is her raw material, which makes the question sharper:':'Her first question is the right one:'} <span class="npc">"Where does a person even stand in a structure this size?"</span>\n\nDele gestures at you: <span class="npc">"Teach it the way you learned it."</span>`,
+hint:"Give her the pyramid and then shrink it to the lines that carry Arcline's money.", hintCrit:"arch",
+choices:[
+ {t:"Stand at the top: category, group, fee name, billing line. Then shrink it: a typical issuer invoice runs about 45 fee names, and the top 13 billing lines carry roughly 90 percent.", q:"best", money:4000, goto:"Q2",
+  cons:"Lena filters to Arcline's lines, watches 2,648 collapse to a working set, and pins the thirteen to her monitor by lunch. The structure stopped being a wall the moment it became a funnel.",
+  why:"The hierarchy is a navigation device: categories orient, groups organise, fee names hold the billing rules, billing lines carry the money. Concentration does the rest, because a single-market issuer's cost lives in a handful of dominant lines. Teaching the funnel, top down then narrowed, is what turns the schedule from intimidating to operable in one sitting."},
+ {t:"Start her on the invoice instead: sort our own lines by amount, work the biggest first, and let the schedule's structure reveal itself through repetition over the cycles.", q:"ok", down:{arch:1}, money:-2000, goto:"Q2",
+  cons:"She finds the big lines fast and mislabels two of them within a week, a tiered fee read as flat and a penalty read as a service charge, because amounts arrived before meanings did.",
+  why:"Immersion teaches eventually, and it teaches by expensive surprise. The hierarchy is one afternoon of orientation that makes every subsequent line self-describing: where it sits reveals what it is. Skipping the map to save an afternoon spends weeks of misreadings."},
+ {t:"Point her at the general ledger mapping first, since finance categories are where her analysis will land anyway, and the Visa taxonomy can stay a reference for edge cases.", q:"bad", down:{arch:2}, money:-4500, goto:"Q2", mistake:"Trained the new analyst on the wrong map. Challenges file in billing lines, never GL codes.",
+  cons:"Her first exception draft arrives written in GL language, and Harbourline's team politely asks which billing lines she means, which is the moment the reference for edge cases becomes the whole job.",
+  why:"The GL is where results are reported, never where fee logic lives. Every reconciliation, challenge and rate check speaks the schedule's own coordinates. An analyst fluent in GL codes and lost in billing lines can describe costs beautifully and dispute none of them."},
+ {t:"Set her a fortnight of structured study across all seventeen categories before she touches live data, so the foundation is complete rather than convenient.", q:"bad", down:{arch:1}, money:-4500, goto:"Q2", mistake:"Sent the analyst to the library again. The top 13 lines were her first day's work.",
+  cons:"Week one covers commercial-card categories Arcline has never billed a cent in, while the live allocation sits unread and one recoverable exception quietly ages past its window.",
+  why:"Completeness is the wrong curriculum for a reference document. The invoice defines the fraction worth deep knowledge, and mastery radiates outward from lines that carry money. A fortnight of category tourism costs real exception windows for knowledge with no cash attached."}
+]},
+
+Q2:{title:"An $8.90 ticket meets the same floor", obj:"D2-O2 · tiers & low ATV",
+narr:`Metal launch pricing session. The premium wallet's projected international POS debit ticket is <b>$8.90</b>, comfortably above the core wallet's $6.40. Someone has already written <span class="npc">"floor problem solved"</span> on the whiteboard. The tier table sits beside it:\n\n· Under $5 · <b>$0.2475</b>\n· $5 to $10 · <b>$0.2475</b>\n· $10 to $100 · <b>$0.33</b>\n· $100 and above · <b>$0.46</b>\n\nMara hands you the marker.`,
+hint:"Read the band the ticket actually sits in, then do the division nobody on the whiteboard did.", hintCrit:"arch",
+choices:[
+ {t:"Unsolved: $8.90 sits in the same band as $6.40, so the floor is still 24.75 cents, 2.8 percent of the ticket. Above $10 the fee steps to 33 cents but falls to under 3.3 percent and keeps shrinking.", q:"best", money:4500, goto:"Q3",
+  cons:"The whiteboard gets corrected in front of its author. Product moves the minimum Metal load to $12, where the percentage burden finally drops, and the pricing deck gains a tier-aware load ladder.",
+  why:"Fixed-amount tiers make percentage cost a division exercise, never a vibes exercise: 24.75 cents is 2.8 percent of $8.90, and crossing into the $10 band trades a higher cent fee for a lower and falling percentage. Product design against a tier table means steering ticket sizes toward the bands where the ratio works, and that requires reading the bands, not the mood."},
+ {t:"Blend Metal and core into one weighted rate for the launch model, since the two products share the tier table and separate staircases double the modelling work.", q:"ok", down:{arch:1}, money:-2000, goto:"Q3",
+  cons:"The blend prices Metal's economics with the core wallet's misery averaged in, the launch case looks worse than reality, and product nearly shrinks a feature that was never the problem.",
+  why:"Blending across products with different ticket distributions manufactures a number true of neither. Tier tables demand per-product staircases precisely because the step function interacts with each product's ATV differently. The extra modelling work is the model."},
+ {t:"Premium behaviour will fix it organically: Metal customers load bigger amounts over time, so launch pricing can assume the migration and skip the tier gymnastics.", q:"bad", down:{arch:2}, money:-5000, goto:"Q3", mistake:"Priced the launch on a hoped-for ATV instead of the projected one.",
+  cons:"Launch traffic lands at $8.90 as projected, the floor takes its 2.8 percent from day one, and the organic migration arrives eventually, months after the mispriced quarter it was supposed to excuse.",
+  why:"Products are priced on the traffic they will have, and nudged toward the traffic you want with design: minimum loads, suggested amounts, bundling. Hope is not a tier strategy. The staircase charges the ticket that arrives, never the one the deck believed in."},
+ {t:"At premium volumes the cents stop mattering: Metal's revenue per user dwarfs a quarter-dollar fee, so the tier analysis is precision theatre for a rounding line.", q:"bad", down:{arch:1}, money:-5000, goto:"Q3", mistake:"Called the largest per-transaction line theatre because the customer is premium.",
+  cons:"The launch model without the line meets its first invoice: the switching fees on Metal's international traffic land among the product's biggest costs, exactly as the schedule always said they would.",
+  why:"Revenue per user pays for many sins and repeals no fee table. Per-transaction costs scale with Metal's transaction count regardless of how valuable the customer is, and premium products often transact more, never less. Rounding away the floor is how rich products ship with poor unit economics."}
+]},
+
+Q3:{title:"300,000 billable nothings", obj:"D2-O2 · outcome-blind lines",
+narr:`Marketing's card-link campaign wired the wallet to loyalty partners, and the plumbing verified every enrolled card: <b>300,000 zero-value account verifications in three weeks</b>, at <b>$0.2525</b> international and <b>$0.0075</b> domestic. Risk screening rode along at <b>$0.08</b> per international authorization touched.\n\nZainab reads the projection: <span class="npc">"The campaign made no sales and a five-figure fee line. Somebody explain the meter to marketing."</span>`,
+hint:"The check is the product. Price the campaign's plumbing the way the schedule does, per event.", hintCrit:"silent",
+choices:[
+ {t:"The meter runs on attempts, never value: the verification is itself the billable event, and screening prices every authorization it touches. Cost the plumbing in the brief.", q:"best", money:4000, goto:"Q4",
+  cons:"Marketing gets a one-page meter guide, and the next campaign brief arrives with a verification budget and a batching plan in it. The five-figure surprise becomes a designed cost with an owner.",
+  why:"Zero-value verifications are a priced network service, 25.25 cents international, and outcome-blind lines like screening bill on contact regardless of what a journey earns. Campaigns that touch card rails are fee events at scale, and the durable fix is upstream: cost the plumbing in the brief, where design can still change it."},
+ {t:"Batch the remaining enrolment waves weekly and cap verifications per card, containing this campaign's tail while the broader lesson waits for the retro.", q:"ok", down:{silent:1}, money:-1500, goto:"Q4",
+  cons:"The tail shrinks nicely, and the retro's lesson arrives after the next campaign has already shipped its own unpriced plumbing, because the fix stayed inside one campaign's walls.",
+  why:"Containment is right and complete is better: the recurring failure is briefs that treat rails as free, and the recurring fix is a fee line in the template. One workaround per campaign is a treadmill; one changed template is a control."},
+ {t:"Zero value should mean zero fee, so dispute the verification lines through Harbourline as misapplied charges before conceding a five-figure cost on no revenue.", q:"bad", down:{silent:2}, money:-4500, goto:"Q4", mistake:"Disputed correctly billed lines a second time. Verifications price the check itself.",
+  cons:"The response quotes the fee names and rates back within a day, the challenge logs as withdrawn, and the desk's next real exception inherits a little less benefit of the doubt.",
+  why:"The schedule prices the verification service explicitly, value or no value, which the deck teaches as the signature outcome-blind line. Challenges spend credibility, a finite resource that real allocation errors need. Verify against the schedule first; dispute only what it fails to support."},
+ {t:"Turn off risk screening for campaign traffic specifically: enrolment verifications are not purchases, so scoring them buys nothing and the toggle saves the ride-along cost.", q:"bad", down:{silent:1}, money:-4500, goto:"Q4", mistake:"Unplugged screening from the exact traffic pattern fraudsters love: silent card testing at volume.",
+  cons:"Zainab intercepts the change request with the fraud team's data: enrolment flows are where stolen cards get tested quietly, and the screening line was the cheapest part of defending them.",
+  why:"Card-link enrolment is a classic card-testing surface, and screening exists precisely for traffic where value is zero but intent is unknown. The saving is cents per event against monthly minimums anyway; the exposure is a fraud pattern with a taste for unwatched rails. Controls stay on where attackers shop."}
+]},
+
+Q4:{title:"The watchlist nobody watches", obj:"D2-O3 · residency",
+narr:`Lena's first solo find. A <b>promotional watchlist file from a 2024 partner pilot</b> still sits in the account screening service: <b>140,000 records</b>, residency at <b>$0.05 per record per month</b>, additions and updates at $0.05, deletions free. The pilot ended eighteen months ago; the partner no longer exists.\n\n<span class="npc">"Seven thousand a month,"</span> she says, <span class="npc">"for a list whose owner is a dissolved company. Tell me this is as simple as it looks."</span>`,
+hint:"Residency bills existence, monthly. One operation on the table costs nothing, and this file has no owner left to object.", hintCrit:"silent",
+choices:[
+ {t:"That simple, done properly: confirm with Risk that nothing references the list, then purge under the retention rule. Residency bills existence, and deletion is free.", q:"best", money:5000, set:{d2_dormant_purged:true}, goto:"Q5",
+  cons:"Risk confirms zero live references in an afternoon, the retention rule gets its second scalp, and $7,000 a month stops billing. Lena's find goes on the board with her name on it.",
+  why:"Per-record residency is the silent line that grows by default and shrinks only by decision. A governed purge, ownership checked, retention rule applied, deletion executed at zero cost, is the entire discipline. Files without owners are precisely the ones that bill forever, because nobody's budget feels them and everybody assumes somebody chose them."},
+ {t:"Archive the list contents externally first and let the file drain by attrition, since deleting a fraud-adjacent artefact outright feels like a decision above the desk's grade.", q:"ok", down:{silent:1}, money:-2000, goto:"Q5",
+  cons:"The external archive takes a week, the attrition takes years, and roughly $7,000 a month keeps billing while a decision that Risk would have signed in an afternoon waits for nobody in particular.",
+  why:"The caution has a monthly price and the governance path is short: the fraud team either references the list or does not, and the answer is a query away. Attrition as policy is the expensive spelling of an unmade phone call. Archive if retention demands it, then delete, this quarter rather than eventually."},
+ {t:"Keep the list resident as fraud memory: a watchlist from a real pilot is history worth five cents a record, and screening breadth ages into value rather than out of it.", q:"bad", down:{silent:2}, money:-5000, goto:"Q5", mistake:"Paid $7,000 a month to warehouse a dissolved partner's stale list and called it memory.",
+  cons:"Risk, when finally asked, cannot name a single decision the list has informed since the pilot closed, and the auditors flag an ungoverned data artefact retained without policy, which is the opposite of the intended look.",
+  why:"Fraud memory lives in models and case data, never in stale third-party lists billing residency. Screening files earn their five cents by being referenced; unreferenced, they are clutter with an invoice. Governed data practice deletes what nothing uses, and the schedule pays you to do it, monthly."},
+ {t:"Migrate the records to a cheaper internal store and keep them out of the screening service, since the schedule only bills residency where the network hosts the file.", q:"bad", down:{silent:1}, money:-5000, goto:"Q5", mistake:"Built a migration project for records whose correct destination is deletion.",
+  cons:"Engineering quotes three weeks for the migration of a list nobody references, which is three weeks and a storage bill more than the free deletion the table has offered all along.",
+  why:"Migration is the right instrument for data with a future and the wrong one for data without a past user. The zero-cost operation on the table is deletion, and the governance question, does anything live reference this, has the same answer either way. Projects that relocate waste still store waste."}
+]},
+
+Q5:{title:"Metal's legacy padlock", obj:"D2-O3 · authentication cost",
+narr:`Launch architecture review. Metal's authentication path was lifted from the legacy processor integration, and it authenticates on <b>PANs at $0.015</b> per 3-D Secure event. The core wallet's flows moved to <b>tokens at $0.010</b> last quarter. Metal ships with <b>2.1 million tokens</b> already live on the book it joins.\n\nDele frames it: <span class="npc">"Premium product, premium fee, or do we fix the path before launch?"</span>`,
+hint:"The discount is a third, per event, forever. Ask what the premium product should ride on a book already tokenized.", hintCrit:"silent",
+choices:[
+ {t:"Fix the path before launch: route Metal's authentications over tokens like the rest of the book. A third off every 3DS event, security upside included, and launch is the cheapest moment to do it.", q:"best", money:4500, goto:"Q6",
+  cons:"The token path lands in the launch sprint with room to spare, Metal authenticates at the discounted rate from its first customer, and the legacy PAN path gets a retirement date instead of a new product.",
+  why:"Wallet-first economics run on token counts, and the schedule prices tokenized authentication a third cheaper than PAN. Retro-fitting a live product costs migration and risk; fitting the launch costs a sprint task. Premium products deserve the cheap, secure path most of all, because their volumes compound the difference monthly."},
+ {t:"Launch on the legacy path and schedule the token migration for the first post-launch quarter, keeping launch scope tight and the risk register short.", q:"ok", down:{silent:1}, money:-2000, goto:"Q6",
+  cons:"Launch ships clean, the migration slips one quarter to two as migrations do, and every Metal authentication meanwhile pays the 50 percent PAN premium the launch sprint had room to delete.",
+  why:"Scope discipline is real and this trade misprices it: the token path was a bounded task in the emptiest sprint the product will ever have. Post-launch, the same change competes with live-product caution and roadmap pressure. Deferred plumbing on a per-event premium is a loan at fee-schedule interest."},
+ {t:"Keep PAN authentication as Metal's standard: premium customers expect the classic card experience, and a half-cent per event is a rounding error against the annual fee.", q:"bad", down:{silent:2}, money:-4500, goto:"Q6", mistake:"Dressed a legacy integration as a premium preference and rounded away a seven-figure event stream.",
+  cons:"No customer ever perceives the credential inside a 3DS challenge, the premium framing dies in the first design review, and the fee difference compounds across every authentication Metal ever performs.",
+  why:"Credential choice is invisible plumbing with visible pricing: same padlock, two rates. Premium experience arguments attach to journeys customers can feel, never to message formats they cannot. Half a cent per event across a launch product's lifetime is exactly the kind of line this course exists to catch."},
+ {t:"Negotiate a launch concession on authentication pricing through Harbourline instead: a new premium programme is leverage, and the fix belongs in the rate rather than the plumbing.", q:"bad", down:{silent:1}, money:-4500, goto:"Q6", mistake:"Took a published rate to the negotiating table while the discount sat in the architecture.",
+  cons:"The answer comes back as it always does: the schedule bills as published, incentives follow volume commitments, and the token rate remains available to any programme that routes to it. The sprint slot, meanwhile, has closed.",
+  why:"The schedule already contains the discount, addressed to whoever builds the token path. Negotiation energy aimed at published rates returns nothing; the same energy aimed at architecture returns a third per event, permanently. When the cheaper rate is self-service, plumbing beats pleading."}
+]},
+
+Q6:{title:"The launch BIN dips", obj:"D2-O4 · minimum approval rate",
+narr: (ss)=>`Metal launches on BIN <b>455312</b>, and Zainab's launch-calibrated fraud rules run hot: week one approval rate lands under Visa's regional floor. The exposure: <b>$2,500 per month, per BIN group</b>, every month the rate sits below the line. ${ss.carry.d1_trigger_map?'Your trigger map already lists approval rate among the metered behaviours, which is why the alert reached you first. ':''}\n\n<span class="npc">"New BIN, no history, cautious rules,"</span> Zainab says. <span class="npc">"Same question as always: what now?"</span>`,
+hint:"The fee prices the month per BIN. The control loop has to run faster than the calendar, from week one.", hintCrit:"auth",
+choices:[
+ {t:"Put the launch BIN on the weekly approval watch from day one and tune the rules inside the month: loosen where the declined cohort converts clean elsewhere, keep the catch, clear the floor before the cut.", q:"best", money:5000, set:{d2_mar_watch:true}, goto:"Q7",
+  cons:"Week two's tuning recovers four points of approval with the fraud catch intact, the BIN clears the floor before month-end, and the launch dashboard gains a MAR panel that every future launch inherits.",
+  why:"MAR reads monthly per BIN, so a launch BIN needs the weekly loop from its first week, not after its first fee. New-BIN caution is legitimate and tunable: early declined cohorts carry signal about which rules are too tight, and precision recovered inside the month costs nothing at the cut. Launches are when the watch matters most, because history is thinnest exactly then."},
+ {t:"Accept a MAR month or two as launch tuition: cautious rules on a new BIN are correct, $2,500 is cheap insurance, and the rate will find the floor as data accumulates.", q:"ok", down:{auth:1}, money:-2000, goto:"Q7",
+  cons:"Tuition gets paid twice before the rules settle, and the retro finds the same tuning was available in week two, which makes the insurance framing read more like interest on an unworked queue.",
+  why:"Launch caution is right; passivity about its cost is the lazy half of the position. The fee is avoidable through work the team can do inside the first month, and the deck files MAR under avoidable for that reason. Insurance you can cancel through effort is usually just effort deferred."},
+ {t:"Pre-clear the floor by softening the launch rules now: approve first, learn from the fraud that arrives, and let the models tighten from evidence rather than caution.", q:"bad", down:{auth:2}, money:-5500, goto:"Q7", mistake:"Bought a launch approval rate with launch fraud, on the BIN fraudsters test hardest.",
+  cons:"New BINs get probed within days, the softened rules wave the testers through, and Metal's first fraud losses arrive before its first MAR cut would have, at a multiple of every fee the softening dodged.",
+  why:"Launch BINs are fraud magnets precisely because their defences are unproven, and learn-from-losses is the most expensive curriculum in payments. The floor is cleared with precision, never with surrender. Fraud losses compound and mark the programme; a tuned rule set does neither."},
+ {t:"File for a new-BIN exemption through Harbourline: integrity programmes must accommodate launch periods, and a documented ramp plan should stand in for the rate until history exists.", q:"bad", down:{auth:1}, money:-5500, goto:"Q7", mistake:"Asked a threshold programme for an exemption category it does not offer.",
+  cons:"The response is familiar by now: the programme reads the rate, the threshold applies from the first monitored month, and the review channel covers calculation errors rather than circumstances. The month spent asking was a month not spent tuning.",
+  why:"Threshold programmes are deliberately circumstance-blind at network scale, launches included. The accommodation for new programmes is the one you build: watch early, tune fast, clear the floor. Exemption-seeking spends the exact weeks the tuning loop needed, and buys the fee it hoped to skip."}
+]},
+
+Q7:{title:"The migrated host speaks 05", obj:"D2-O4 · generic response codes",
+narr:`The authorization host migration finished last month, and Dele's code report finds the regression: the new host's response mapping shipped with defaults, and <b>58 percent of declines now leave as code 05, Do Not Honour</b>. The old host had it down to single digits. The schedule's price for the habit: <b>$0.15 per transaction</b> on international traffic past the threshold.\n\n<span class="npc">"We fixed this once,"</span> Dele says. <span class="npc">"Fix it so migrations cannot unfix it."</span>`,
+hint:"The mapping table exists from last time. The new question is what stops the next migration from shipping defaults again.", hintCrit:"auth",
+choices:[
+ {t:"Reapply the code mapping to the new host now, then make the mapping a release gate: no auth-host change ships without the decline-code distribution checked against baseline.", q:"best", money:4500, goto:"Q8",
+  cons:"The mapping restores single-digit 05 rates in one release, and the new gate catches its first would-be regression two sprints later, in staging, where it costs a comment instead of a fee.",
+  why:"The immediate fix is a reapply; the durable fix is structural, because migrations will keep happening and defaults will keep shipping. A release gate that diffs decline-code distribution against baseline turns a recurring silent regression into a loud pre-production failure. Fees prevented at the gate cost nothing, monthly."},
+ {t:"Reapply the mapping for the top decline reasons now and backlog the release gate, since the immediate exposure is live and process work can follow the fee relief.", q:"ok", down:{auth:1}, money:-1500, goto:"Q8",
+  cons:"The exposure closes and the backlog does what backlogs do: the gate is still pending when the next host patch ships, and the 05 rate twitches upward again while everyone remembers this conversation.",
+  why:"Sequencing the fix before the safeguard is reasonable triage that tends to end after step one, because relief removes urgency. The gate is hours of work protecting against a failure mode that has now occurred twice. Finish the loop while the incident still has attention."},
+ {t:"Keep the new host's defaults: migration stability outranks code cosmetics, and touching the response mapping mid-settling-period risks the exact outages the project just survived.", q:"bad", down:{auth:2}, money:-5000, goto:"Q8", mistake:"Called a priced regression cosmetic and let 15 cents a transaction ride for stability theatre.",
+  cons:"The mapping change was config, tested in an afternoon, shipped without incident, eventually. The two cycles of hesitation billed at threshold rates and taught merchants nothing about their declines all the while.",
+  why:"Response mapping is configuration, isolated from the switching paths where migration risk actually lives, and the regression bills per transaction while it stands. Stability arguments earn their keep on changes that can break processing; extending them to priced config defects converts caution into a monthly line item."},
+ {t:"Route around the fee instead: shift the international traffic mix toward domestic corridors this quarter so the generic-code measure loses its expensive denominator.", q:"bad", down:{auth:1}, money:-5000, goto:"Q8", mistake:"Proposed rerouting a business to dodge a config fix. The mapping was an afternoon.",
+  cons:"The corridor mix belongs to customers, who decline to relocate their remittances for Arcline's response-code hygiene. The fee accrues on the traffic that exists while the fix waits on a theory about traffic that does not.",
+  why:"Traffic mix is a product outcome, not a compliance lever, and steering real customer flows to launder a code distribution mistakes the business for the bug. The defect is a default mapping; the fix is the mapping. Any plan that moves millions in volume to avoid an afternoon of config has inverted the size of things."}
+]},
+
+Q8:{title:"Kelburn retries harder", obj:"D2-O4 · Category 1 reattempts",
+narr:`The Kelburn quarterly again, and their promised optimisation turns out to be a louder engine: retries now run <b>twice nightly</b>, and the decline pile includes <b>Category 1, Issuer Will Never Approve</b> responses, stolen cards, closed accounts, hard blocks, retried on schedule with everything else. Reattempt fees run <b>$0.10 to $0.15</b> per excess attempt, straight back through the acquirer to Arcline's line.\n\nDele: <span class="npc">"Same partner, worse maths. Rule on it properly this time."</span>`,
+hint:"Never still means never. The wall goes at the category, and the partner contract carries the enforcement.", hintCrit:"auth",
+choices:[
+ {t:"Hard-stop Category 1 at our gateway so no partner engine can retry them, give the rest a per-code matrix with caps, and write the retry standard into the Kelburn agreement at renewal.", q:"best", money:4500, set:{d2_retry_wall:true}, goto:"Q9",
+  cons:"The wall moves inside Arcline's plumbing where partner enthusiasm cannot reach it, attempt volume drops by a third with recovery flat, and the renewal gains a retry schedule with fee-recharge teeth for breaches.",
+  why:"Category 1 responses are terminal by definition, and the reliable enforcement point is our own gateway rather than a partner's engine and good intentions. The per-code matrix preserves genuine recovery, insufficient-funds retries after payday convert, while the contract clause aligns Kelburn's incentives with the meter. Walls at the source survive partner optimisations; requests do not."},
+ {t:"Send Kelburn the Category 1 stop-list and retry caps as integration requirements with a compliance deadline, keeping the enforcement in their engine where the behaviour lives.", q:"ok", down:{auth:1}, money:-2000, goto:"Q9",
+  cons:"Kelburn complies in six weeks, mostly: the deadline slips once, an edge case retries a closed-account code for another cycle, and the fees meanwhile bill to the party that chose requesting over blocking.",
+  why:"Partner-side enforcement is legitimate and slower, because it routes through their backlog and their interpretation. Our gateway sees every attempt anyway, and a block there is immediate, complete and unilateral. Where the meter bills us, the switch should be ours; the partner requirement then becomes belt on braces."},
+ {t:"Let the louder engine run the quarter: recovery is up two points, the reattempt fees are dimes, and partner momentum is worth more than message hygiene mid-contract.", q:"bad", down:{auth:2}, money:-5000, goto:"Q9", mistake:"Approved double-frequency retries against terminal declines, on a pattern integrity monitoring already profiles.",
+  cons:"The Category 1 population converts at exactly zero at any frequency, the dimes multiply by twice-nightly, and the pattern's persistence upgrades it from a fee line toward a conversation with the schemes nobody wants.",
+  why:"Recovery gains live entirely in the soft-decline population; the hard-decline retries contribute fees and profile risk, nothing else. Momentum that runs through a metered wall is momentum billed per attempt. The two points of recovery survive the wall untouched, which is the whole point of cutting by category."},
+ {t:"Vary the retry fingerprint: stagger timing, rotate amounts by a few cents, and route through the secondary MID so the attempts read as organic traffic rather than a schedule.", q:"bad", down:{auth:2}, money:-5000, goto:"Q9", mistake:"Proposed laundering retry traffic again, with more steps. Disguise upgrades fees into investigations.",
+  cons:"Dele ends the discussion in one sentence: patterns dressed as organic traffic are what integrity teams are staffed to find, and the file they open would carry Harbourline's name above Arcline's.",
+  why:"Evasion is the one strategy that converts a priced behaviour into an examined one. Networks profile retry traffic across exactly the dimensions proposed for variation, and detection reframes a fee problem as a conduct problem with the sponsor's licence in the frame. Expensive behaviour gets fixed; disguised behaviour gets escalated."}
+]},
+
+Q9:{title:"The cutover replay", obj:"D2-O4 · matching discipline",
+narr: (ss)=>`Processor cutover weekend leaves a souvenir: a settlement file replay pushed <b>2,700 clearing records with no matching authorization</b> into Monday's batch. The exposure lines are familiar from the schedule: misuse of the authorization system, unmatched clearing, billed per record. ${ss.carry.d1_entrymode_fix?'The release-gate discipline from your Day 1 SDK catch flagged the batch signature before presentment, which is why the count stops at 2,700. ':''}\n\nDele: <span class="npc">"Contained. Now make containment boring."</span>`,
+hint:"The check that catches this has a natural frequency, and it is the same as the billing frequency: daily.", hintCrit:"settle",
+choices:[
+ {t:"Stand the daily auth-to-clearing exception report up as a permanent close step: every orphan surfaces and resolves before presentment, every day, cutover weekends included.", q:"best", money:(ss)=>ss.carry.d1_entrymode_fix?5500:5000, goto:"Q10",
+  cons:"The report joins the morning routine between the settlement check and the coffee, orphans die young from then on, and the next cutover's replay is caught at breakfast and repaired by ten.",
+  why:"Unmatched clearing is fully preventable at exactly one point: reconciliation inside the presentment window, at the same daily frequency the billing runs. Events like cutovers are when replays happen, which is the argument for the control being permanent rather than event-driven. Boring, daily, owned by Operations: that is what containment looks like at steady state."},
+ {t:"Run the exception report daily through the post-cutover stabilisation month, then drop to weekly once the new processor's file handling has earned trust.", q:"ok", down:{settle:1}, money:-2000, goto:"Q10",
+  cons:"Stabilisation ends, weekly resumes, and the next replay arrives on a Tuesday eight months later with six days of records clearing unmatched before the Sunday check, exactly as the frequency maths always said it would.",
+  why:"Trust in processors is a category error; the control exists because rare events recur on their own schedule. Clearing bills nightly, so the matching gap is however many nights the check skips. A daily report costs minutes and scales its value precisely on the days nobody expected to need it."},
+ {t:"Settle the 2,700 and remediate any affected cardholders directly: the replay is a known, bounded incident, and customer-side cleanliness matters more than plumbing forensics.", q:"bad", down:{settle:2}, money:-4500, goto:"Q10", mistake:"Remediated customers and left the records to bill, again. The integrity lines read presentment, never intentions.",
+  cons:"Customers end the week happy and the fee lines land regardless, because the network billed the unmatched records the night they presented. Both costs paid, one of them entirely optional.",
+  why:"Customer remediation and record compliance are parallel obligations with separate meters, and paying one never discharges the other. The billable defect is records without authorizations at presentment; the only fix is matching before the batch cuts. Kindness to cardholders is right, and it is not a fee strategy."},
+ {t:"Pursue the processor's error-and-omissions cover for the replay: their cutover caused it, their liability should fund it, and Visa's fees can flow through the claim.", q:"bad", down:{settle:1}, money:-4500, goto:"Q10", mistake:"Routed a live billing exposure into an insurance claim's timeline. The fees land now; claims land eventually.",
+  cons:"The claim opens, the loss adjusters ask for months of documentation, and the fee lines bill on schedule to the member whose records they were. Recovery, if it comes, arrives as a fraction, long after the daily report would have cost nothing.",
+  why:"Third-party recovery is aftermath work, useful for large losses and glacial always, while scheme billing follows the traffic in real time. A control gap funded by claims is a control gap with a financing plan. Close the gap at the source, then pursue the processor for the residue from a contained position."}
+]},
+
+Q10:{title:"The sweep and the cutoff", obj:"D2-O4 · settlement funding",
+narr:`Quarter-end treasury housekeeping: an automated sweep moved surplus operating cash to the yield account overnight, and today's settlement funding will miss the <b>payment cycle date cutoff</b> unless someone acts inside the hour. The schedule's tiers wait patiently: <b>$500 to $7,000 per missed CPD</b>, by days overdue and volume outstanding.\n\nMara, passing: <span class="npc">"Second Friday-shaped problem this quarter. Solve today, then solve Fridays."</span>`,
+hint:"Fund inside the hour, then make the sweep and the settlement calendar know about each other permanently.", hintCrit:"settle",
+choices:[
+ {t:"Recall the sweep now and fund inside the cutoff, then fix the system: pre-funding buffer sized to the calendar, sweep rules that respect settlement days, alerts three days out, Treasury owning all of it.", q:"best", money:4500, set:{d2_cpd_buffer:true}, goto:"END",
+  cons:"The recall lands with forty minutes to spare. By the following week the sweep logic reads the settlement calendar before it moves a cent, and the buffer policy turns Friday-shaped problems into a category with zero members.",
+  why:"The immediate move is mechanical; the durable one is teaching the cash-management system that settlement obligations outrank overnight yield. Buffer plus calendar-aware sweeps plus early alerts, owned by Treasury, is the deck's control implemented at the root cause. Yield on surplus is real money; integrity fees and reliability marks cost more than the basis points."},
+ {t:"Fund today and cap the sweep at a fixed floor balance going forward, a blunt rule that protects most settlement days without wiring systems together this quarter.", q:"ok", down:{settle:1}, money:-2000, goto:"END",
+  cons:"The floor holds until the first quarter where settlement volume outgrows it, which is the failure mode of every static number guarding a dynamic obligation. The near-miss that follows restarts this exact conversation.",
+  why:"A fixed floor is a snapshot pretending to be a policy: right for today's volumes, silent about growth, blind to the calendar's heavy days. The robust rule reads the actual settlement schedule, which the systems already know. Blunt controls are fine where stakes are low; funding deadlines with tiered penalties are not that place."},
+ {t:"Let this one miss at the bottom tier: $500 against quarter-end yield on the swept balance is defensible arithmetic, and the housekeeping window closes cleaner without an unwound sweep.", q:"bad", down:{settle:2}, money:-4500, goto:"END", mistake:"Traded a settlement obligation for basis points, and started a miss record to save unwinding a sweep.",
+  cons:"The fee posts, the miss joins the quarter's record alongside the earlier Friday, and two entries start to look like a pattern to both the network and the sponsor, which no amount of yield explains away.",
+  why:"The arithmetic ignores the ledger that matters: settlement reliability is tracked, patterned and remembered, and second misses cost disproportionately in standing. Yield is recoverable tomorrow; a reliability record is not. Deadlines with tier tables are the network saying this is the thing we watch."},
+ {t:"Ask Harbourline to bridge today's funding from their side as sponsor, squaring it tomorrow: member banks carry intraday liquidity precisely for their programmes' operational wrinkles.", q:"bad", down:{settle:1}, money:-4500, goto:"END", mistake:"Asked the sponsor to lend against a deadline our own recall could meet, spending standing for convenience.",
+  cons:"Ingrid's team can technically do it, prices the favour into the relationship ledger, and asks the obvious question about why the programme's own surplus cash could not be recalled, which has no good answer.",
+  why:"Sponsor liquidity is a real facility for real emergencies, and this is an automation wrinkle with an in-house fix available inside the hour. Favours drawn for avoidable causes reprice at renewal, where the year's file gets read. Solve with your own systems first; save the sponsor's balance sheet for the day something actually breaks."}
+]}
+
+},
 nodes:{
 
 Q1:{title:"2,648 lines deep", obj:"D2-O1 · the hierarchy",
@@ -1034,6 +1457,190 @@ blurb:"The final morning, where the line becomes an operation. Sponsor visibilit
 criteria:[{id:"vis",name:"Sponsor visibility",w:25},{id:"map",name:"Cost-base mapping",w:25},{id:"econ",name:"Unit economics",w:25},{id:"ops",name:"Controls & rhythm",w:25}],
 slos:[{id:"D3-O1",t:"Demand billing-line visibility and own the liability"},{id:"D3-O2",t:"Map the seven fee families of a sponsored issuer"},{id:"D3-O3",t:"Turn the invoice into unit economics and pricing"},{id:"D3-O4",t:"Run the monthly rhythm, owners and negotiation levers"}],
 bestPath:"Q1 refuse the blend, contract for line detail → Q2 the penalty follows our behaviour → Q3 seven families, each with its basis → Q4 model OCT and AFT before pricing → Q5 one named owner per leak → Q6 evidence the overcharge before the deadline → Q7 three denominators → Q8 restructure the bleeding segment → Q9 the monthly drumbeat → Q10 four levers priced off the reconciled year.",
+bestPathB:"Q1 refuse the two-rate blend, keep the lines → Q2 Kelburn's penalties are still ours → Q3 seven families for the new COO → Q4 model Ferrow's rails before the price → Q5 one owner per leak, again → Q6 evidence the VRM misrate before the deadline → Q7 denominators for a two-product book → Q8 restructure the campus segment → Q9 reinstate the drumbeat after the crunch → Q10 renewal, round two, evidence first.",
+nodesB:{
+
+Q1:{title:"The simplified statement", obj:"D3-O1 · billing-line visibility",
+narr: (ss)=>`Series B's final morning opens with Harbourline's renewal counter-proposal: a <b>"simplified statement"</b>, two blended rates, one for domestic and one for international, covering all network charges, fixed fees allocated quarterly. ${ss.carry.d1_asked_detail?'It would retire the line-level feed that has caught an error in most months it has run.':(ss.carry.d1_took_blend?'After the adjustments line you booked unchallenged, the whole statement would now read that way.':'Every line on it would read like the blends you have spent three days unpicking.')}\n\nMara: <span class="npc">"Two rates does sound simple. Your call, again."</span>`,
+hint:"Two blends are still blends. Ask what a challenge would stand on once the lines are gone.", hintCrit:"vis",
+choices:[
+ {t:"Refuse it and contract for billing-line detail as a term. Two rates hide tier effects, penalties and misallocations exactly like one rate does, and every future challenge dies with the lines.", q:"best", money:5000, goto:"Q2",
+  cons:"The counter goes back with the detail requirement written into the schedule of the agreement itself. Harbourline concedes without theatre, and the feed that catches errors keeps catching them.",
+  why:"Splitting a blend in two adds a decimal of granularity and removes none of the blindness: tier effects, behavioural lines and allocation errors all vanish into whichever rate absorbs them. Visibility that lives in the contract survives account managers, leave cover and renewals. The simplification worth having is fewer errors, never fewer lines."},
+ {t:"Take the two-rate statement for invoicing and require the line-level file alongside as a data feed, splitting presentation from verification so both sides get their simplicity.", q:"ok", down:{vis:1}, money:-2000, goto:"Q2",
+  cons:"Workable, with a seam: the invoice and the feed drift apart within a quarter, reconciling the two becomes its own monthly task, and challenges now argue about which artefact governs before they argue about money.",
+  why:"Two sources of truth is one more than an agreement can safely have. If the file is authoritative, the invoice should be built from it; if it is advisory, challenges stand on sand. The clean structure bills at line level and lets presentation summarise, never the reverse."},
+ {t:"Accept it: two rates benchmarked against last year's average unit costs, certainty for the plan, and the analyst hours currently spent on line-checking freed for higher work.", q:"bad", down:{vis:2}, money:-5000, goto:"Q2", mistake:"Bought two flat rates priced off the clean year the desk's own discipline produced, and switched the lights off to get them.",
+  cons:"The rates bank this year's purges, tuned rules and recovered errors into Harbourline's margin, and the first behavioural fee of next year arrives invisibly, inside an average nobody can decompose.",
+  why:"Blended rates priced after a disciplined year are the counterparty buying your improvements at face value and keeping the future upside. The analyst hours being freed are the control being retired. The simplification lands on the wrong object: the cost stays, and the ability to know the cost is what leaves."},
+ {t:"Escalate the proposal to the board as a commercial matter: statement format at renewal is pricing strategy, and the desk should implement whichever structure the board prefers.", q:"bad", down:{vis:1}, money:-5000, goto:"Q2", mistake:"Sent the board a question the desk exists to answer, with the wrong frame attached.",
+  cons:"The board, reading it as pricing, optimises for the headline rate and nearly accepts the blend, until Mara reframes it in the meeting as an audit-rights question, which is what it was when it left the desk.",
+  why:"Format is operating capability wearing commercial clothes, and the desk's job is to say so before the board votes on the costume. Escalation without framing is delegation of the one judgement the escalating team was hired to hold. Send recommendations upward, never open questions about your own domain."}
+]},
+
+Q2:{title:"Kelburn's penalties, whose line", obj:"D3-O1 · liability follows behaviour",
+narr: (ss)=>`${ss.carry.d2_retry_wall?'The retry wall has the reattempt line near zero, so the month’s allocation shows only a residual, which makes the argument in the room theoretical and therefore louder.':'The month’s allocation carries a reattempt-fee block traced squarely to Kelburn’s engine.'} A commercial lead wants it recharged wholesale: <span class="npc">"Their engine, their behaviour, their fees. Book it to the partner and be done."</span>\n\nMara forwards it with the usual single word: <span class="npc">"Settle."</span>`,
+hint:"Two questions wearing one coat: who the scheme holds liable, and what the partner contract can recover afterwards.", hintCrit:"vis",
+choices:[
+ {t:"Scheme liability is ours and stays ours: the traffic runs under Arcline's arrangements, whoever pressed retry. Recharge Kelburn through the contract afterwards, as commerce rather than as liability.", q:"best", money:4500, goto:"Q3",
+  cons:"The wiki line gains a sibling: partners can owe us money; the network is owed by us. The recharge clause does its work at the next Kelburn invoice, and the penalty lines keep their internal owners either way.",
+  why:"The network prices the conduct of the member chain that carries the traffic, and no partner contract moves that. What contracts do is create recovery: fees recharged, standards enforced, breaches priced. Booking penalties straight to a partner conflates the two and quietly deletes the internal ownership that prevents the fees in the first place."},
+ {t:"Net the recharge into Kelburn's monthly settlement automatically, so the fees flow through to the causing party without a claims process each cycle.", q:"ok", down:{vis:1}, money:-2000, goto:"Q3",
+  cons:"Clean plumbing, blunted signal: once the fees flow through silently, Arcline's own retry and monitoring owners stop feeling them, and the prevention muscle that kept the line near zero starts to soften.",
+  why:"Automated recovery is fine mechanics built on a subtle mistake: treating pass-through as the control. The control is prevention, owned internally, with recovery as backstop. Fees that leave the P&L without touching an owner teach the organisation they are Kelburn's problem, and behaviour follows the teaching."},
+ {t:"The commercial lead is right: causation is clear, the engine is theirs, and holding Arcline's P&L hostage to a partner's code is exactly what recharge clauses exist to prevent.", q:"bad", down:{vis:2}, money:-5000, goto:"Q3", mistake:"Let liability follow the keyboard instead of the traffic, one layer down from last time.",
+  cons:"The books look clean until a recharge dispute arrives, and the schedule's answer surfaces in the worst forum: the network held Arcline liable all along, and the partner's lawyers know it.",
+  why:"Causation assigns the commercial argument; the membership chain assigns the liability, and they are different ledgers. A programme that books scheme penalties as partner receivables carries an unpriced risk: every disputed recharge is liability it already owes, waiting. The clean version books the cost, then recovers it, in that order."},
+ {t:"Split it three ways as a matter of policy: a third to Kelburn, a third to the authorization cost centre, a third absorbed, so every party with a hand near the meter feels it.", q:"bad", down:{vis:1}, money:-5000, goto:"Q3", mistake:"Distributed a penalty until nobody owned it, and called the dilution fairness.",
+  cons:"Three parties each feel a third of the pain and none of the responsibility, the line stabilises at a level everyone can live with, and the deck's phrase resurfaces in the next review: penalties are pure leakage, now with a distribution formula.",
+  why:"Fairness formulas are how avoidable fees become permanent budget lines: diluted ownership is the same as no ownership, with better paperwork. One trigger, one owner, full recovery where a contract allows it. Anything that makes a penalty comfortable to carry has optimised for the wrong variable."}
+]},
+
+Q3:{title:"The new COO wants her own page", obj:"D3-O2 · the cost map",
+narr:`<b>Tobi Alade</b> joins as Chief Operating Officer mid-quarter and asks for the scheme cost base her way: <span class="npc">"One page. What we pay for, on what basis each piece charges, and which pieces this house actually controls. Assume I know payments and not this invoice."</span>\n\nThe year's allocations and the schedule extract sit ready. The page is yours to draw, again, for a sharper reader this time.`,
+hint:"Seven rows, each with a basis. Mark which ones Arcline's own traffic drives, and where the sponsor sits.", hintCrit:"map",
+choices:[
+ {t:"Seven families, one line each with its basis: attempts, records, tokens, ad valorem, payouts, screened events, per-BIN licensing. Six ride our traffic; licensing sits with the sponsor.", q:"best", money:5000, goto:"Q4",
+  cons:"Tobi reads it in ninety seconds, circles tokenization and money movement as the two she wants deep-dives on, and adopts the page as the standing format for her ops reviews. The map survived a sharper reader.",
+  why:"The seven-family map answers an operator's exact three questions: what, on what basis, controlled by whom. Basis is the load-bearing column, because per-attempt, per-record, per-token and ad valorem each point at a different lever, and the sponsor flag on licensing marks where the agreement governs instead of the traffic. Good maps survive audiences; this one is built to."},
+ {t:"Give her the thirteen-category taxonomy with Arcline's spend mapped onto it, since a payments-literate COO can handle the full reference model without the simplification.", q:"ok", down:{map:1}, money:-2000, goto:"Q4",
+  cons:"She handles it easily and annotates it down to seven meaningful rows herself in the margin, then asks, mildly, why the desk sent the reference model instead of the operating one.",
+  why:"Literacy is not the constraint; decision altitude is. The taxonomy describes the universe of scheme fees; the seven families describe this programme's money. Sending the fuller model to a capable reader outsources the compression that was the deliverable. Sharp audiences deserve sharper pages, never longer ones."},
+ {t:"Send the trend view instead: total scheme cost, twelve months, indexed against volume, since a new COO's first need is trajectory rather than taxonomy.", q:"bad", down:{map:2}, money:-5000, goto:"Q4", mistake:"Answered a structure question with a trend line. Totals move nothing; bases move decisions.",
+  cons:"Tobi's reply is one line: she asked what we pay for and what we control, and the chart answers neither. The page she wanted arrives two days late with an apology it never needed.",
+  why:"Trend is context; the request was mechanism. A total indexed to volume hides exactly the distinctions an operator needs, which costs are count-driven versus value-driven versus fixed versus behavioural. When someone asks for the machine's parts, sending its speedometer reads as either evasion or not knowing. Neither is a good first impression."},
+ {t:"Walk her through the billing-line detail live instead of a page: the raw lines are the truth, and an operator this senior should see the actual material before any editorial layer.", q:"bad", down:{map:1}, money:-5000, goto:"Q4", mistake:"Offered the COO a guided tour of 315 billing lines instead of the analysis she asked for.",
+  cons:"Twenty minutes into the walkthrough she stops it, kindly, and asks for the one page again. The raw material was never in doubt; the desk's ability to compress it now briefly is.",
+  why:"Seniority raises the premium on synthesis, never lowers it. Raw lines are the desk's working material and the deliverable is judgement rendered onto one page: families, bases, ownership. Editorial structure is the analyst's product. Declining to editorialise for an executive is declining to do the job in front of them."}
+]},
+
+Q4:{title:"Ferrow's two rails", obj:"D3-O2 · money movement",
+narr:`Growth's next signing: <b>Ferrow Logistics</b>, fleet-driver payouts pushed to cards on one rail, supplier collections pulled on another. Finance has modelled both legs <span class="npc">"on the domestic debit blend, adjusted up a touch"</span>, and the term sheet prices from that model.\n\nDele's flag is quieter this time, because it is the second one: <span class="npc">"OCT out, AFT in, blend assumed. Term sheet signs Friday."</span>`,
+hint:"Push and pull are their own priced rails. A blend borrowed from purchases answers a question nobody asked.", hintCrit:"map",
+choices:[
+ {t:"Hold Friday until both legs are modelled on their own lines: OCT and AFT price per transaction on their own schedules, with their own geography layers. Money movement is never a debit blend with a haircut.", q:"best", money:5500, goto:"Q5",
+  cons:"The remodel takes a day and moves the payout leg's cost enough to redraw one tier of the term sheet. Ferrow signs Monday instead of Friday, at a price that survives its own invoice, which is the only Friday worth missing.",
+  why:"Push-to-card and account-funding transactions carry their own per-transaction pricing, tiers and cross-border treatment, and the deck marks the family as the classic fintech surprise line for exactly this reason. A borrowed blend prices a different product. Two days before signature is the cheapest moment the correction will ever have; the first allocation after launch is the most expensive."},
+ {t:"Sign Friday with a repricing clause pegged to the first quarter's actual scheme costs, converting the model risk into a contract mechanism both sides can live with.", q:"ok", down:{map:1}, money:-2000, goto:"Q5",
+  cons:"Ferrow signs, quarter one lands, and the clause fires: the reprice is contractually smooth and commercially sour, because partners remember being repriced upward far longer than they remember the clause enabling it.",
+  why:"Repricing clauses are honest engineering for genuine unknowns, and these rails were knowable from the published schedule in a day of modelling. A mechanism that shifts model risk onto the partner relationship spends goodwill to save analyst time, which is almost always the wrong exchange rate at signing."},
+ {t:"The blend holds for launch arithmetic: payouts and collections are card transactions on the same network, and the adjusted rate absorbs the rail differences inside its buffer.", q:"bad", down:{map:2}, money:-5500, goto:"Q5", mistake:"Priced two money-movement rails off a purchase blend, one course after learning why that fails.",
+  cons:"The first Ferrow allocation lands with money movement among its top lines, the buffer absorbs half of it, and the term sheet's economics quietly invert on the corridor mix nobody modelled either.",
+  why:"Rails are products with schedules, never flavours of one blended rate. OCT and AFT sit in their own fee family because their pricing structure is their own, and buffers built on the wrong base absorb noise rather than error. The lesson repeats at contract speed, where unwinding costs a renegotiation."},
+ {t:"Price it as signed and treat quarter one as the measurement period: real invoice data beats any pre-launch model, and Ferrow's volumes will reveal the true rate faster than analysis will.", q:"bad", down:{map:1}, money:-5500, goto:"Q5", mistake:"Shipped the price before the cost again, this time with a signature attached.",
+  cons:"Quarter one measures exactly what the schedule already said, at contract prices that now need a partner conversation to fix. Measurement confirmed the model that was never built, expensively.",
+  why:"Ship-and-measure is for costs that cannot be known in advance; published fee schedules are the opposite case. The invoice will always agree with the schedule, so reading the schedule first is measurement at zero cost. Signed prices convert modelling shortcuts into renegotiations, and renegotiations price worse than analysis ever did."}
+]},
+
+Q5:{title:"Two names on every leak", obj:"D3-O4 · avoidable-fee owners",
+narr: (ss)=>`The reorg happened, as reorgs do, and the avoidable-fee register drifted with it: most lines now show <b>two owners</b>, a primary and a dotted-line, and last month two penalty lines went unworked while each owner assumed the other had them. ${ss.carry.d2_retry_wall?'The reattempt row alone stayed clean, its gateway wall needing no owner’s attention, which is rather the point. ':''}\n\nMara pins the drifted register to the wall: <span class="npc">"Fix the plumbing of accountability. How does it run from Monday?"</span>`,
+hint:"A leak with two owners has none, and the reorg just proved it. Re-pin one name per line.", hintCrit:"ops",
+choices:[
+ {t:"One named owner per line, restored: Treasury the calendar, Risk the floor, Authorization the codes and retries, Operations the matching, Disputes the deadlines. Dotted lines become escalation paths.", q:"best", money:4500, goto:"Q6",
+  cons:"The register goes back to seven rows and seven single names, the dotted lines re-badge as escalation contacts, and the two unworked penalties from last month get owners and closure dates in the same meeting.",
+  why:"The reorg demonstrated the theorem live: shared ownership is diffuse ownership, and diffuse ownership is the mechanism by which avoidable fees become recurring ones. Escalation paths are healthy; co-ownership of a trigger is not. Every avoidable fee is a process defect with a named owner, singular, and the register's whole power lives in that grammar."},
+ {t:"Keep the primary and dotted structure but add a tie-break rule: the primary owns unless formally handed over, which respects the reorg's matrix while closing the assumption gap.", q:"ok", down:{ops:1}, money:-1500, goto:"Q6",
+  cons:"The tie-break works where people read it, and matrix gravity keeps generating the assumption gap at every handover, holiday and joiner, because two names on a line invites exactly the ambiguity the rule then adjudicates.",
+  why:"Rules that adjudicate ambiguity are weaker than structures that never create it. The matrix can stay for the org chart; the register is a control document, and control documents work by removing interpretation. One name per line needs no tie-break, which is the argument for it."},
+ {t:"Escalate the whole register up to the COO's office: post-reorg, only that altitude can hold cross-functional lines accountable, and Tobi asked for exactly this kind of mandate.", q:"bad", down:{ops:2}, money:-4500, goto:"Q6", mistake:"Moved ownership up instead of pinning it down, and made the COO the register's single point of failure.",
+  cons:"Tobi accepts it for a fortnight, then returns it with a note that lands like a rubric: executives sponsor controls, teams own triggers, and the register should name the teams. The fortnight billed normally.",
+  why:"Altitude is sponsorship, never ownership: the COO can fund and enforce the register, and cannot personally work a decline-code queue. Escalating ownership upward is the organisational version of the reserve account, a way to make a control someone else's problem. Triggers are owned where the process runs."},
+ {t:"Rebuild the register as a shared severity queue: all leakage events flow into one triaged backlog the functions work jointly, modern incident practice instead of static name tags.", q:"bad", down:{ops:1}, money:-4500, goto:"Q6", mistake:"Replaced named prevention with pooled reaction, and called the regression modern.",
+  cons:"The queue triages beautifully and prevents nothing, because queues start when events occur and these fees are priced precisely on not occurring. Month one closes with excellent incident metadata on penalties that named owners would have kept off the invoice.",
+  why:"Incident practice reacts; the register prevents. Pooled queues dissolve the one property that makes avoidable fees avoidable, a specific team owning the trigger before it fires. Severity triage of leakage is accounting for failure in real time. The static name tags were the control; their staticness was the feature."}
+]},
+
+Q6:{title:"The screening misrate", obj:"D3-O4 · validate and recover",
+narr:`The monthly validation, now in Lena's hands, catches its next one: Harbourline's allocation priced <b>domestic risk-screening at the international rate</b>, $0.08 against $0.005, across the whole domestic book. Overcharge this cycle: about <b>$14,600</b>. The allocation payment deadline sits <b>five days out</b>.\n\nLena has the workings ready and one question: <span class="npc">"Same play as the switching tier, or does a second catch change the game?"</span>`,
+hint:"Same play, sharpened: evidence, counterparty, clock, and this time a pattern worth naming politely.", hintCrit:"ops",
+choices:[
+ {t:"Same play, plus one sentence: raise it today with rate evidence and our own counts, land the correction before the deadline, and ask for the root cause of a second mapping error.", q:"best", money:5500, goto:"Q7",
+  cons:"The correction lands in three days, the root-cause question lands harder: Harbourline audits their allocation model's rate mappings end to end and finds a third error nobody had caught, in Arcline's favour for once. Reconciling programmes get reconciled treatment.",
+  why:"The rhythm converts findings into cash inside the window, and repeat findings earn one escalation upgrade: a root-cause request, professional and specific, that shifts the sponsor from fixing errors to fixing the machine that makes them. Evidence plus deadline plus pattern, delivered without heat, is how a programme trains its counterparty."},
+ {t:"Recover this one exactly like the last one and keep the pattern observation in the file for renewal, where accumulated errors argue quietly for a margin concession.", q:"ok", down:{ops:1}, money:-2000, goto:"Q7",
+  cons:"The recovery lands cleanly and the mapping defect lives on unexamined, generating a third error two cycles later, because evidence saved for renewal fixed nothing in the meantime.",
+  why:"Banking the pattern for negotiation treats a live process defect as a bargaining chip, which costs every intervening cycle whatever the defect produces next. The root-cause ask and the renewal file are not rivals; the ask fixes the machine now, and its paper trail argues at renewal anyway."},
+ {t:"Net the $14,600 against this cycle's payment with the workings attached: a second error in a quarter forfeits the courtesy of the exception queue, and the maths is airtight.", q:"bad", down:{ops:2}, money:-5500, goto:"Q7", mistake:"Short-paid the principal member over an airtight spreadsheet, converting a strong claim into a breach discussion.",
+  cons:"Finance blocks it on sight, again, because the agreement's payment terms do not carry a two-errors exception. The claim was unbeatable inside the process it skipped; outside it, the conversation is about Arcline's conduct instead of Harbourline's mapping.",
+  why:"The strength of the evidence never upgrades the remedy: exception windows exist precisely so that being right resolves as money rather than as conflict. Frustration at repeat errors is legitimate fuel for a root-cause escalation, and lethal fuel for unilateral set-off. Process discipline is what compound interest on credibility looks like."},
+ {t:"Waive the recovery as a relationship investment: $14,600 forgiven two months before renewal buys more goodwill than it costs, and goodwill prices into margins.", q:"bad", down:{ops:1}, money:-5500, goto:"Q7", mistake:"Paid a known error to seem pleasant, and taught the allocation model that errors in their favour are free.",
+  cons:"The waiver buys a warm email and zero basis points, because renewal pricing responds to leverage and discipline rather than gifts. The mapping defect, unexamined again, files this under outcomes it can live with.",
+  why:"Goodwill purchased with unrecovered errors is indistinguishable from inattention on the counterparty's ledger, and it prices accordingly. Professional recovery, cleanly executed, builds the only reputation that discounts anything: this programme reads everything. Renewal leverage is made of recovered corrections, not forgiven ones."}
+]},
+
+Q7:{title:"Denominators for two products", obj:"D3-O3 · unit economics",
+narr: (ss)=>`Board pack season, and the unit-economics model must now speak for <b>two products</b>: the core wallet and Metal. ${ss.carry.d2_dormant_purged?'The account files are lean after two purges, so the fixed-cost side starts honest. ':''}Mara frames the decision: <span class="npc">"Same discipline, one more dimension. When the board asks what a transaction costs, or what a card costs to exist, what do we divide by what, and for which product?"</span>`,
+hint:"The three cuts survive; the new rule is that every cut runs per product before it runs blended.", hintCrit:"econ",
+choices:[
+ {t:"Keep the three cuts and run each per product: variable fees per cleared transaction and channel, fixed and residency fees per active card, contribution after interchange. Blend only the group total.", q:"best", money:(ss)=>ss.carry.d2_dormant_purged?5500:5000, goto:"Q8",
+  cons:"The model gains a product dimension without losing a principle, and the first output earns its keep immediately: Metal's contribution per transaction runs triple the core wallet's, which reprices two roadmap debates in one meeting.",
+  why:"Multi-product books die by blended denominators, because a premium product's economics can subsidise a bleeding one invisibly inside any average. The three cuts stay the deck's three, variable per cleared transaction, fixed per active card, contribution after interchange, and the product dimension is what keeps each number attached to a decision someone can actually make."},
+ {t:"Run the three cuts blended across the book and add a Metal adjustment factor, since a second full model doubles maintenance for a product still finding its volumes.", q:"ok", down:{econ:1}, money:-2000, goto:"Q8",
+  cons:"The adjustment factor starts honest and drifts monthly as Metal's mix moves, and within a quarter the board is pricing two products off one number and a fudge, which is one product more than the number can carry.",
+  why:"Adjustment factors are blends wearing a correction, and they inherit the blend's disease: they answer for yesterday's mix. Per-product cuts are the same model run twice, not a second model, and launch volumes are exactly when clean product economics matter most, because every roadmap decision still fits in the window."},
+ {t:"Move the model to per-customer economics across both products: users hold wallets and cards together, so the customer is the honest unit and products are just features on the account.", q:"bad", down:{econ:2}, money:-5000, goto:"Q8", mistake:"Divided network fees by users again, now with two products' costs hiding in one customer number.",
+  cons:"The per-customer number swings with multi-product adoption in ways no scheme line explains, product managers cannot reconcile their own costs out of it, and the model quietly loses the audience it was built for.",
+  why:"The network bills messages, records, tokens and BINs, and never customers; a customer denominator decouples every number from its billing cause, doubly so with two products blending inside each user. Customer economics belong in the marketing stack, layered on top of cost models whose units match the meters underneath."},
+ {t:"Index both products' scheme costs to their revenue: cost-to-income per product is board-native language and self-adjusts as Metal scales, no denominator debates required.", q:"bad", down:{econ:1}, money:-5000, goto:"Q8", mistake:"Indexed mechanical costs to revenue again, so every Metal price test rewrites the cost story.",
+  cons:"Metal runs an introductory fee waiver, revenue dips by design, the cost-to-income ratio spikes on cue, and the board asks what went wrong with network costs during a marketing experiment that touched none of them.",
+  why:"Revenue-indexed cost metrics confound the meter with the market: scheme fees respond to transactions and records, and the ratio moves whenever pricing breathes. Board-native language is a formatting layer; the units underneath must be billing units, or every commercial experiment generates a false cost signal."}
+]},
+
+Q8:{title:"The campus wallet bleeds", obj:"D3-O3 · contribution",
+narr:`The per-product model's first casualty report: the <b>campus wallet segment</b>, average ticket <b>$2.80</b>, international student corridors. Interchange earned is thin, the switching floor takes <b>$0.2475</b>, screening adds <b>$0.08</b>, and contribution per transaction is firmly <b>negative</b>. Growth's counterpoint: campus signups convert to full-salary wallets at graduation better than any channel they buy.\n\nMara: <span class="npc">"Recommendation, and make it survive both dashboards."</span>`,
+hint:"The floor is fixed per attempt; the ticket is a design choice. Change the shape before judging the segment.", hintCrit:"econ",
+choices:[
+ {t:"Restructure the product: default weekly batching lifts the ticket past the floor's bite, instant send becomes a priced option, and the graduation pipeline keeps its users. Then re-judge on the new arithmetic.", q:"best", money:5000, goto:"Q9",
+  cons:"Batching ships as the campus default, average tickets clear $9, contribution crosses zero with the growth curve intact, and the graduation-conversion story survives with its economics finally attached. Both dashboards sign the same page.",
+  why:"A fixed per-attempt floor against a $2.80 ticket is a design problem before it is a strategy problem: aggregation, defaults and priced immediacy move the ATV without moving the user. The pipeline argument deserves an answer, and the answer is a segment restructured to carry its own weight while it converts. Structure first, price second, exit last, in that order."},
+ {t:"Keep it as priced acquisition: cap the subsidy per student per term, tag it as marketing spend against the graduation-conversion value, and review at the cohort's first graduation wave.", q:"ok", down:{econ:1}, money:-2000, goto:"Q9",
+  cons:"Honest, bounded, and still paying retail: the cap arrives, the mechanics persist by design, and the review lands on the batching question a restructure would have answered in the first sprint, a year of subsidy earlier.",
+  why:"Loss-leading with a cap and a conversion thesis is legitimate strategy done properly, and it still leaves free money on the table when the structural fix is cheap and compatible. The strongest version funds the pipeline and batches the sends: patience about the segment, impatience about the waste inside it."},
+ {t:"Exit the segment: negative contribution at growing volume is the definition of scaling a loss, and the graduation thesis is a story the P&L has never once audited.", q:"bad", down:{econ:2}, money:-5000, goto:"Q9", mistake:"Executed the strategic segment on the raw number, without testing the design fix that flips its sign.",
+  cons:"The exit memo meets the cohort data Growth finally assembles: graduated campus users carry triple the lifetime value of any paid channel. The segment was a bargain wearing a bad transaction shape, and a competitor with weekly batching inherits it.",
+  why:"Kill discipline is right where economics are structural; this arithmetic was an artefact of ticket size meeting a tier floor, and ticket size was designable. The unaudited thesis cuts both ways, so the analysis owed one more step: restructure, then re-measure, then judge. Contribution models exist to redesign products first and execute them second."},
+ {t:"Hold as-is and lean on the corridor's growth: student volumes compound, scheme relationships reward scale, and today's negative unit is the entry price of tomorrow's tier relief.", q:"bad", down:{econ:1}, money:-5000, goto:"Q9", mistake:"Waited for the staircase to melt again. The sub-$5 tier is flat at any volume the corridor ever reaches.",
+  cons:"Volume compounds exactly as promised, and so does the loss riding on every transaction, because the 24.75-cent floor greets the millionth ticket at the height it greeted the first. The entry price turns out to buy entry to more of itself.",
+  why:"Value-tiered fees tier on the transaction's amount, and no aggregate volume moves a per-ticket band. Volume-based relief exists in incentive agreements, negotiated, explicit and elsewhere. Scaling a per-unit loss on schedule mercy is the one strategy this course prices twice, and it costs the same both times."}
+]},
+
+Q9:{title:"The drumbeat, after the crunch", obj:"D3-O4 · the monthly rhythm",
+narr: (ss)=>`The Metal launch crunch took its toll on process: last cycle's validation ran late, the exception window closed on two queries, and the unit-economics refresh slipped a month. ${ss.carry.d2_cpd_buffer?'Treasury’s buffer held through all of it, which is what buffers are for. ':''}Mara wants the recommitment explicit: <span class="npc">"Give me the month again, day by day, and what makes it crunch-proof this time."</span>`,
+hint:"Same calendar as before, plus the thing that survives a crunch: the rhythm treated as production, never as admin.", hintCrit:"ops",
+choices:[
+ {t:"Receive by day 3, validate by day 7, exceptions by day 10, unit economics by day 15, quarterly reviews, and one upgrade: the rhythm runs as production work with named cover, crunch or no crunch.", q:"best", money:5000, goto:"Q10",
+  cons:"The calendar goes back on the wall with named cover for every step, the next crunch tests it and takes nothing, and the two expired queries from last cycle become the last entries in that particular ledger.",
+  why:"The deck's rhythm is the same because the windows are the same: exceptions close at the payment deadline whether or not a launch is running. What failed was classification, the rhythm filed as interruptible admin, and the fix is operational status: owners, cover, and a rule that product crunches borrow from roadmap, never from control cycles. Run it monthly or lose it, especially in the months something else is loud."},
+ {t:"Restore the calendar with a crunch clause: during declared launch periods, validation runs on the top thirteen lines only, keeping the discipline alive at reduced depth.", q:"ok", down:{ops:1}, money:-1500, goto:"Q10",
+  cons:"The clause works as designed and teaches an unintended lesson: crunches get declared more readily once they buy lighter controls, and the tail lines go unwatched for exactly the periods when new products make the tail interesting.",
+  why:"Graceful degradation is respectable engineering and dangerous governance, because the degraded mode is self-declaring. The top-13 focus is already the rhythm's normal efficiency; codifying a lighter crunch mode mostly codifies permission. Cover and production status protect the same hours without teaching the organisation to invoke the discount."},
+ {t:"Move the whole discipline to a quarterly deep cycle with monthly spot checks, matching process depth to the team's demonstrated capacity rather than to an aspirational calendar.", q:"bad", down:{ops:2}, money:-4500, goto:"Q10", mistake:"Solved a coverage problem by shrinking coverage, and re-booked the annual autopsy at quarterly frequency.",
+  cons:"The first quarter under the new cadence accumulates eleven weeks of unvalidated allocations, one recoverable error ages past its window with a number attached, and the capacity argument meets the cost of what capacity was protecting.",
+  why:"Windows close monthly, so validation is monthly, and the capacity constraint is an argument for cover and priority rather than for surrender. Matching process to demonstrated capacity sounds humble and operates as pre-authorised failure: the calendar was never aspirational, it was sized to the billing cycle it polices."},
+ {t:"Automate the rhythm end to end this quarter: scripted validation, auto-raised exceptions, scheduled refreshes, so the calendar stops depending on humans who can be crunched at all.", q:"bad", down:{ops:1}, money:-4500, goto:"Q10", mistake:"Sent the control to the roadmap it was competing with, and left the window unguarded during the build.",
+  cons:"The automation project lands in the same backlog as every Metal feature, ships in three quarters at half scope, and the manual rhythm it was replacing has meanwhile lapsed in anticipation, which was the most expensive possible sequencing.",
+  why:"Automation of validation is a genuinely good roadmap item and a terrible substitute for restoring the control now, because builds take quarters and windows close monthly throughout. The sequence that works runs the manual rhythm with cover while automation earns its way in behind it. Anything else converts a process gap into a project dependency."}
+]},
+
+Q10:{title:"Renewal, round two", obj:"D3-O4 · the four levers",
+narr: (ss)=>`Renewal week, second time through. Ingrid brings Harbourline's pricing team; Mara brings you, Lena, and a file that is thicker this year: reconciled cycles, ${ss.carry.d2_dormant_purged?'two governed purges, ':''}${ss.carry.d2_mar_watch?'clean MAR quarters on both BINs, ':''}recovered corrections with a root-cause audit behind them, and two products' unit economics. <span class="npc">"Last call of the programme,"</span> Mara says. <span class="npc">"Structure it."</span>`,
+hint:"Same four levers, richer evidence. Sequence them so each concession makes the next one cheaper.", hintCrit:"ops",
+choices:[
+ {t:"Tiers and incentives first on two products' volumes, then BIN consolidation against the fixed lines, then routing and token strategy priced forward, then the sponsor margin last, against the reconciled file.", q:"best", money:5500, goto:"END",
+  cons:"The sequence compounds as designed: Metal's committed volumes unlock incentive pricing, the BIN plan retires two fixed lines, the token roadmap prices next year's traffic, and the margin conversation closes last against a file that has been agreeing with itself all morning. Mara signs; the room, once again, applauds a cost line with an owner.",
+  why:"The four levers are the deck's closing chapter and the sequence is the craft: structural asks first, where the counterparty concedes mechanisms rather than margin, personal economics last, when the evidence has already done the persuading and the deal wants closing. A reconciled year is what turns each lever from a request into a term, and a second reconciled year turns terms into a relationship's operating system."},
+ {t:"Open with the root-cause audit and the error history as the theme, making reliability the negotiation's centre and letting the four levers follow from the credibility it establishes.", q:"ok", down:{ops:1}, money:-2000, goto:"END",
+  cons:"The reliability theme lands, the room spends its best hour relitigating last year's errors instead of pricing next year's structure, and the levers arrive late against a counterparty now defending its record rather than trading.",
+  why:"The error file is leverage as background radiation, never as agenda: it works best priced silently into every ask. Leading with it converts a trading session into a review, and reviewed counterparties defend where trading ones concede. The levers are the agenda; the file is why they land."},
+ {t:"Demand a blended twenty percent reduction across the relationship, letting Harbourline allocate the concession internally: the file justifies the number and their team knows their margins best.", q:"bad", down:{ops:2}, money:-5500, goto:"END", mistake:"Traded four evidenced levers for one blunt number again, and invited the blend back in through the concession's packaging.",
+  cons:"Harbourline meets the number, as counterparties meet numbers: through repackaging, with the simplified statement returning as the delivery vehicle, and the desk spends the next cycle discovering which twenty percent it actually received.",
+  why:"Headline demands get met in form and diluted in substance, because the allocator controls the arithmetic. The levers exist precisely to specify where value comes from: tiers, fixed lines, routing, margin, each verifiable on its own line. A concession you cannot decompose is a blend by another name, and the file deserved better spending."},
+ {t:"Run it as a competitive process this year: invite a second sponsor's term sheet on the two-product book, and let market tension do what sequenced levers did last time, faster.", q:"bad", down:{ops:1}, money:-5500, goto:"END", mistake:"Priced a migration threat the incumbent can cost to the token, on a book now twice as expensive to move.",
+  cons:"Ingrid's team prices the exit as they did before, now with Metal's BIN, reissue and re-tokenisation added, and every subsequent number arrives pre-discounted for theatre. The tension that works, it turns out, was the file all along.",
+  why:"Credible alternatives discipline markets where switching is cheap; a two-product wallet book with millions of live tokens is the opposite terrain, and the incumbent knows the migration maths to the dollar. Leverage for a sponsored programme compounds from operational excellence and reconciled evidence, which raise the cost of losing you, the one number the counterparty cannot audit away."}
+]}
+
+},
 nodes:{
 
 Q1:{title:"The blend comes home", obj:"D3-O1 · billing-line visibility",
@@ -1246,7 +1853,9 @@ const BACKEND = {
   /* v1.0: backend lives in the Supabase project "Understanding Scheme Fees"
      (same organisation as the sibling course projects). Faithful replica of
      the hardened schema: RLS policies, leaderboard views (security_invoker),
-     and the facilitator delete RPC. Swap url+key when repurposing. */
+     and the facilitator delete RPC. Swap url+key when repurposing.
+     v1.1: the same project hosts Supabase Auth; /auth/v1 endpoints
+     share this URL and publishable key. */
   url: "https://wskjrcgdhgolahrrmpvs.supabase.co",
   key: "sb_publishable_tTtJZHgzZe0LpNqV3xvSBw_O5FCeg2_",
   on: false, probed: false, q: [], timer: null, shipped: 0
@@ -1259,19 +1868,106 @@ function setCloud(on){
 }
 async function sbFetch(path, opts = {}, timeout = 6000){
   if(!BACKEND.url || (BACKEND.probed && !BACKEND.on && !opts.probe)) return null;
-  try{
+  const go = async (tok) => {
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), timeout);
-    const r = await fetch(BACKEND.url + "/rest/v1" + path, Object.assign({}, opts, {
-      headers: Object.assign({
-        "apikey": BACKEND.key, "Authorization": "Bearer " + BACKEND.key,
-        "Content-Type": "application/json", "Prefer": "return=minimal"
-      }, opts.headers || {}), signal: ctl.signal }));
-    clearTimeout(t);
+    try{
+      const r = await fetch(BACKEND.url + "/rest/v1" + path, Object.assign({}, opts, {
+        headers: Object.assign({
+          "apikey": BACKEND.key, "Authorization": "Bearer " + (tok || BACKEND.key),
+          "Content-Type": "application/json", "Prefer": "return=minimal"
+        }, opts.headers || {}), signal: ctl.signal }));
+      clearTimeout(t); return r;
+    }catch(e){ clearTimeout(t); throw e; }
+  };
+  try{
+    let tok = AUTH.s ? await AUTH.ensure() : null;
+    let r = await go(tok);
+    if(r.status === 401 && AUTH.s){ const ok = await AUTH.refresh(); if(ok) r = await go(AUTH.s.access_token); }
     if(!r.ok) throw new Error("HTTP " + r.status);
     const txt = await r.text();
     if(!BACKEND.on) setCloud(true);
     return txt ? JSON.parse(txt) : true;
   } catch(e){ setCloud(false); return null; }
+}
+
+/* ============================================================
+   ACCOUNTS (v1.1) · Supabase Auth over raw REST, no dependencies.
+   Passwords live with the auth service, never in our tables.
+   Sessions cache in localStorage (tps_auth) so a signed-in device
+   keeps working offline; tokens refresh silently when near expiry.
+   ============================================================ */
+const AUTH = {
+  s: null,
+  load(){ AUTH.s = lsGet("tps_auth") || null; return AUTH.s; },
+  save(s){ AUTH.s = s || null; if(s) lsSet("tps_auth", s); else { try{ localStorage.removeItem("tps_auth"); }catch(e){} } },
+  uid(){ return AUTH.s && AUTH.s.user ? (AUTH.s.user.id || null) : null; },
+  fresh(){ return !!(AUTH.s && AUTH.s.expires_at && (AUTH.s.expires_at - 90) * 1000 > Date.now()); },
+  pack(j){ return { access_token: j.access_token, refresh_token: j.refresh_token || "",
+    expires_at: Math.floor(Date.now()/1000) + (j.expires_in || 3600),
+    user: { id: (j.user && j.user.id) || "", email: (j.user && j.user.email) || "" } }; },
+  async call(path, body, method, bearer){
+    try{
+      const r = await fetch(BACKEND.url + "/auth/v1" + path, {
+        method: method || "POST",
+        headers: Object.assign({ "apikey": BACKEND.key, "Content-Type": "application/json" },
+          bearer ? { "Authorization": "Bearer " + bearer } : {}),
+        body: body === undefined ? undefined : JSON.stringify(body) });
+      let j = {}; try{ j = await r.json(); }catch(e){}
+      return { ok: r.ok, status: r.status, j: j };
+    }catch(e){ return { ok:false, status:0, j:{} }; }
+  },
+  async signup(email, pw, meta){
+    const r = await AUTH.call("/signup", { email: email, password: pw, data: meta || {} });
+    if(r.ok && r.j && r.j.access_token){ AUTH.save(AUTH.pack(r.j)); return { ok:true, session:true }; }
+    if(r.ok) return { ok:true, session:false };
+    return { ok:false, err: authErr(r) };
+  },
+  async signin(email, pw){
+    const r = await AUTH.call("/token?grant_type=password", { email: email, password: pw });
+    if(r.ok && r.j.access_token){ AUTH.save(AUTH.pack(r.j)); return { ok:true }; }
+    return { ok:false, err: authErr(r) };
+  },
+  async refresh(){
+    if(!AUTH.s || !AUTH.s.refresh_token) return false;
+    const r = await AUTH.call("/token?grant_type=refresh_token", { refresh_token: AUTH.s.refresh_token });
+    if(r.ok && r.j.access_token){ AUTH.save(AUTH.pack(r.j)); return true; }
+    if(r.status === 400 || r.status === 401) AUTH.save(null);
+    return false;
+  },
+  async ensure(){
+    if(!AUTH.s) return null;
+    if(AUTH.fresh()) return AUTH.s.access_token;
+    const ok = await AUTH.refresh();
+    return ok && AUTH.s ? AUTH.s.access_token : null;
+  },
+  async recover(email){ return AUTH.call("/recover", { email: email }); },
+  async sendVerify(email){ return AUTH.call("/otp", { email: email, create_user: false }); },
+  async setPassword(pw){ const tok = await AUTH.ensure(); if(!tok) return { ok:false, status:0, j:{} }; return AUTH.call("/user", { password: pw }, "PUT", tok); },
+  signout(){ AUTH.save(null); }
+};
+function authErr(r){
+  const j = r.j || {};
+  const m = j.error_description || j.msg || j.message || (j.error && j.error.message) || "";
+  if(/already registered|already been registered|already exists/i.test(m)) return "That email already has an account. Sign in instead, or use Forgot password.";
+  if(/invalid login|invalid grant|invalid credentials/i.test(m)) return "Email or password is wrong. Mind the spelling, or use Forgot password.";
+  if(/not confirmed/i.test(m)) return "This account needs its email link clicked before first sign-in. Check the inbox, spam included.";
+  if(/rate limit|too many/i.test(m)) return "Too many attempts for the moment. Give it a minute and try again.";
+  if(r.status === 0) return "No connection. The first sign-in on a device needs the network; after that you can play offline.";
+  return m || "That did not work. Check the details and try again.";
+}
+/* Email links land back here with tokens in the URL hash:
+   type=recovery opens the new-password screen; a magic link verifies the address. */
+function bootAuthHash(){
+  const h = location.hash || "";
+  if(h.indexOf("access_token=") === -1) return null;
+  const p = {};
+  h.replace(/^#/, "").split("&").forEach(kv => { const i = kv.indexOf("="); if(i > 0) p[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1)); });
+  try{ history.replaceState(null, "", location.pathname + location.search); }catch(e){}
+  if(!p.access_token) return null;
+  AUTH.save({ access_token: p.access_token, refresh_token: p.refresh_token || "",
+    expires_at: Math.floor(Date.now()/1000) + (parseInt(p.expires_in, 10) || 3600),
+    user: { id: "", email: "" } });
+  return p.type || "magiclink";
 }
 /* directory: live team names feed the registration datalist */
 async function probeBackend(){
@@ -1286,6 +1982,7 @@ function fillTeams(){ const d=$("teamList"); if(d) d.innerHTML = REG.teams.map(t
 function saveProgress(){
   if(!S.user) return;
   lsSet("tps_done_"+S.courseId+"_"+S.user.id, {done:S.done, attempts:S.attempts});
+  cloudPush();
 }
 async function hydrateProgress(){
   if(!S.user) return;
@@ -1406,33 +2103,204 @@ function flashMoney(up){
 
 /* ---------- registration (v0.5): real names, real teams ---------- */
 function courseOptions(){ return REG.liveCourses.map(c=>`<option value="${c}">${COURSES[c].title} · ${COURSES[c].level}</option>`).join(""); }
+const AUTHUI = { mode: "create", busy: false };
+function authNote(msg, good){ const n = $("authNote"); if(n){ n.textContent = msg || ""; n.style.color = good ? "var(--olive)" : "var(--rust)"; } }
+function authTab(m){
+  AUTHUI.mode = m;
+  $("tabCreate").classList.toggle("on", m === "create");
+  $("tabSignin").classList.toggle("on", m === "signin");
+  $("createBox").style.display = m === "create" ? "block" : "none";
+  $("signinBox").style.display = m === "signin" ? "block" : "none";
+  authNote("");
+}
 function initReg(){
   $("courseSel").innerHTML = courseOptions();
   $("courseSelR").innerHTML = courseOptions();
   fillTeams();
+  AUTH.load();
   const saved = lsGet("tps_profile");
-  if(saved && saved.id && saved.name){
-    $("regReturn").style.display="block"; $("regNew").style.display="none";
-    $("regReturnName").textContent = saved.name;
-    $("regReturnSub").textContent = (saved.team ? saved.name+" · Team "+saved.team : saved.name)
-      + " · your capital, rank and day progress restore on this device.";
-    if(saved.courseId && COURSES[saved.courseId]) $("courseSelR").value = saved.courseId;
-    $("continueBtn").onclick = ()=>{ saved.courseId=$("courseSelR").value; lsSet("tps_profile",saved); enterAs(saved,true); };
-    $("switchBtn").onclick = ()=>{ $("regReturn").style.display="none"; $("regNew").style.display="block"; };
-  } else { $("regReturn").style.display="none"; $("regNew").style.display="block"; }
+  if(AUTH.s){
+    $("regReturn").style.display = "block"; $("regNew").style.display = "none";
+    $("regReturnName").textContent = (saved && saved.name) ? saved.name : (AUTH.s.user.email || "your account");
+    $("regReturnSub").textContent = "Signed in" + (AUTH.s.user.email ? " as " + AUTH.s.user.email : "") + ". Your rank, budget and day progress follow this account to any device.";
+    if(saved && saved.courseId && COURSES[saved.courseId]) $("courseSelR").value = saved.courseId;
+    $("continueBtn").onclick = sessionContinue;
+    $("switchBtn").onclick = () => { AUTH.signout(); try{ localStorage.removeItem("tps_profile"); }catch(e){} initReg(); };
+  } else {
+    $("regReturn").style.display = "none"; $("regNew").style.display = "block";
+    authTab(saved && saved.id ? "signin" : "create");
+  }
 }
 function slugId(name){ return "prf_"+((name.toLowerCase().replace(/[^a-z0-9]+/g,"").slice(0,12))||"player")+"_"+Math.random().toString(36).slice(2,6); }
-function register(){
-  const name=$("regName").value.trim(), team=$("regTeam").value.trim();
-  if(name.length<2){ $("regName").style.borderColor="var(--rust)"; $("regName").focus(); return; }
-  $("regName").style.borderColor="";
-  const u={ id:slugId(name), name:name, team:team||null, courseId:$("courseSel").value };
+async function fetchOwnProfile(){
+  const uid = AUTH.uid(); if(!uid) return null;
+  const rows = await sbFetch("/profiles?user_id=eq." + encodeURIComponent(uid) + "&select=id,name,team,email,email_verified", { headers: { "Prefer": "" } });
+  return rows && rows[0] ? rows[0] : null;
+}
+async function provisionProfile(name, team, email){
+  const u = { id: slugId(name), name: name, team: team || null };
+  const ins = await sbFetch("/profiles", { method: "POST", body: JSON.stringify([{ id: u.id, name: u.name, team: u.team, cohort: null, user_id: AUTH.uid(), email: email || null }]) });
+  if(ins === null) return null;
+  sbFetch("/enrollments", { method: "POST", body: JSON.stringify(REG.liveCourses.map((c, i) => ({ profile_id: u.id, course_id: c, sort: i }))) });
+  return u;
+}
+async function createAccount(){
+  if(AUTHUI.busy) return;
+  const name = $("regName").value.trim(), team = $("regTeam").value.trim();
+  const email = $("regEmail").value.trim().toLowerCase(), pw = $("regPw").value;
+  if(name.length < 2){ $("regName").focus(); return authNote("Give the standings a name, two characters or more."); }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ $("regEmail").focus(); return authNote("That email does not look complete."); }
+  if(pw.length < 8){ $("regPw").focus(); return authNote("Password needs at least 8 characters."); }
+  AUTHUI.busy = true; $("enterBtn").disabled = true; authNote("Creating your account…", true);
+  const r = await AUTH.signup(email, pw, { name: name, team: team || null });
+  AUTHUI.busy = false; $("enterBtn").disabled = false;
+  if(!r.ok) return authNote(r.err);
+  if(!r.session){
+    authTab("signin"); $("liEmail").value = email;
+    return authNote("Account created. This backend wants the email link clicked before first sign-in: find it in your inbox, then sign in here.", true);
+  }
+  authNote("Account ready. Setting up your seat…", true);
+  let prof = await fetchOwnProfile();
+  if(!prof){
+    const u = await provisionProfile(name, team, email);
+    if(!u) return authNote("Account created, but the profile could not be saved. Check the connection and press the button again.");
+    prof = { id: u.id, name: u.name, team: u.team, email: email, email_verified: false };
+  }
+  AUTH.sendVerify(email);
+  emit("registration", { node: "-", team: team || "-" });
+  await finishLogin(prof, false);
+}
+async function signIn(){
+  if(AUTHUI.busy) return;
+  const email = $("liEmail").value.trim().toLowerCase(), pw = $("liPw").value;
+  if(!email || !pw) return authNote("Email and password, both.");
+  AUTHUI.busy = true; $("liGo").disabled = true; authNote("Signing in…", true);
+  const r = await AUTH.signin(email, pw);
+  AUTHUI.busy = false; $("liGo").disabled = false;
+  if(!r.ok) return authNote(r.err);
+  emit("login", { node: "-" });
+  await afterAuth(email);
+}
+async function afterAuth(email){
+  let prof = await fetchOwnProfile();
+  if(!prof){
+    const tok = await AUTH.ensure();
+    const me = await AUTH.call("/user", undefined, "GET", tok);
+    const nm = (me.j && me.j.user_metadata && me.j.user_metadata.name) || (email ? email.split("@")[0] : "Player");
+    const tm = (me.j && me.j.user_metadata && me.j.user_metadata.team) || null;
+    const u = await provisionProfile(nm, tm, email || (me.j && me.j.email) || null);
+    if(!u) return authNote("Signed in, but the profile could not be created. Check the connection and try again.");
+    prof = { id: u.id, name: u.name, team: u.team, email: email, email_verified: false };
+  }
+  await finishLogin(prof, true);
+}
+async function sessionContinue(){
+  $("continueBtn").disabled = true;
+  const tok = await AUTH.ensure();
+  if(!tok){
+    $("continueBtn").disabled = false;
+    /* offline with a cached session falls through to the local seat below;
+       a dead session (refresh rejected) was cleared by AUTH.refresh, so re-init */
+    if(!AUTH.s){ initReg(); return; }
+  }
+  if(tok && !AUTH.uid()){
+    const me = await AUTH.call("/user", undefined, "GET", tok);
+    if(me.ok && me.j && me.j.id){ AUTH.s.user = { id: me.j.id, email: me.j.email || "" }; AUTH.save(AUTH.s); }
+  }
+  let prof = tok ? await fetchOwnProfile() : null;
+  $("continueBtn").disabled = false;
+  if(!prof){
+    const saved = lsGet("tps_profile");
+    if(tok){ await afterAuth(AUTH.s.user.email || ""); return; }
+    if(saved && saved.id){ await finishLogin({ id: saved.id, name: saved.name, team: saved.team || null, email: "", email_verified: true }, true); return; }
+    authNote("Could not reach the cloud and no local seat exists yet. Connect once to sign in.");
+    return;
+  }
+  await finishLogin(prof, true);
+}
+async function finishLogin(prof, returning){
+  const pick = ($("regReturn").style.display === "block" && $("courseSelR").value) ? $("courseSelR").value
+             : ($("courseSel") && $("courseSel").value) ? $("courseSel").value : REG.liveCourses[0];
+  const u = { id: prof.id, name: prof.name, team: prof.team || null, courseId: COURSES[pick] ? pick : REG.liveCourses[0] };
   lsSet("tps_profile", u);
-  /* bounded anonymous inserts; RLS governs both. Fire-and-forget: offline just stays local. */
-  sbFetch("/profiles", {method:"POST", body:JSON.stringify([{id:u.id, name:u.name, team:u.team, cohort:null}])});
-  sbFetch("/enrollments", {method:"POST", body:JSON.stringify(REG.liveCourses.map((c,i)=>({profile_id:u.id, course_id:c, sort:i})))});
-  emit("registration",{node:"-", team:u.team||"-"});
-  enterAs(u, false);
+  S.verified = !!prof.email_verified; S.email = prof.email || (AUTH.s && AUTH.s.user.email) || "";
+  await pullProgress(u);
+  enterAs(u, !!returning);
+}
+function register(){ createAccount(); }
+
+/* ---------- cloud progress: one JSON blob per profile x course ---------- */
+function progressState(u){
+  return { v: 1, t: Date.now(),
+    done: S.done, attempts: S.attempts, dayFlags: S.dayFlags, unlocks: S.unlocks,
+    run: lsGet("tps_run_" + S.courseId + "_" + u.id) || null };
+}
+let PUSH_T = null;
+function cloudPush(){
+  if(!AUTH.s || !S.user) return;
+  clearTimeout(PUSH_T);
+  PUSH_T = setTimeout(() => {
+    const body = [{ profile_id: S.user.id, course_id: S.courseId, state: progressState(S.user), updated_at: new Date().toISOString() }];
+    sbFetch("/progress?on_conflict=profile_id,course_id", { method: "POST",
+      headers: { "Prefer": "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(body) });
+  }, 1200);
+}
+function cloudPushNow(){
+  if(!AUTH.s || !S.user) return Promise.resolve(null);
+  clearTimeout(PUSH_T);
+  const body = JSON.stringify([{ profile_id: S.user.id, course_id: S.courseId, state: progressState(S.user), updated_at: new Date().toISOString() }]);
+  return sbFetch("/progress?on_conflict=profile_id,course_id", { method: "POST",
+    headers: { "Prefer": "resolution=merge-duplicates,return=minimal" }, body: body });
+}
+/* tab or window closing: one keepalive shot so the last answers travel */
+window.addEventListener("pagehide", () => {
+  try{
+    if(!AUTH.s || !S.user || !AUTH.fresh()) return;
+    const body = JSON.stringify([{ profile_id: S.user.id, course_id: S.courseId, state: progressState(S.user), updated_at: new Date().toISOString() }]);
+    fetch(BACKEND.url + "/rest/v1/progress?on_conflict=profile_id,course_id", { method: "POST", keepalive: true,
+      headers: { "apikey": BACKEND.key, "Authorization": "Bearer " + AUTH.s.access_token,
+        "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates,return=minimal" }, body: body });
+  }catch(e){}
+});
+async function pullProgress(u){
+  if(!AUTH.s) return;
+  const rows = await sbFetch("/progress?profile_id=eq." + encodeURIComponent(u.id) + "&course_id=eq." + encodeURIComponent(u.courseId) + "&select=state", { headers: { "Prefer": "" } });
+  const cs = rows && rows[0] && rows[0].state ? rows[0].state : null;
+  if(!cs) return;
+  const dk = "tps_done_" + u.courseId + "_" + u.id, fk = "tps_flags_" + u.courseId + "_" + u.id,
+        uk = "tps_unlocks_" + u.courseId + "_" + u.id, rk = "tps_run_" + u.courseId + "_" + u.id;
+  const local = lsGet(dk) || { done: {}, attempts: {} };
+  const done = local.done || {}, attempts = local.attempts || {};
+  Object.entries(cs.done || {}).forEach(([k, v]) => {
+    const cAtt = (cs.attempts && cs.attempts[k]) || 0, lAtt = attempts[k] || 0;
+    const l = done[k];
+    if(!l) done[k] = { bestPts: v.bestPts || 0, lastNet: v.lastNet || 0 };
+    else { l.bestPts = Math.max(l.bestPts || 0, v.bestPts || 0); if(cAtt > lAtt) l.lastNet = v.lastNet || 0; }
+  });
+  Object.entries(cs.attempts || {}).forEach(([k, v]) => { attempts[k] = Math.max(attempts[k] || 0, v || 0); });
+  lsSet(dk, { done: done, attempts: attempts });
+  const fl = lsGet(fk) || {}; Object.entries(cs.dayFlags || {}).forEach(([k, v]) => { if(!fl[k]) fl[k] = v; }); lsSet(fk, fl);
+  const ul = lsGet(uk) || {}; Object.entries(cs.unlocks || {}).forEach(([k, v]) => { if(v) ul[k] = true; }); lsSet(uk, ul);
+  const lr = lsGet(rk);
+  if(cs.run && (!lr || (cs.run.t || 0) > (lr.t || 0))) lsSet(rk, cs.run);
+}
+function renderVerify(){
+  const el = $("verifyStrip"); if(!el) return;
+  if(!AUTH.s || !S.user){ el.style.display = "none"; return; }
+  if(S.verified){
+    el.style.display = "block"; el.style.color = "var(--olive)";
+    el.textContent = "✓ Email verified · " + (S.email || "");
+    return;
+  }
+  el.style.display = "block"; el.style.color = "";
+  el.innerHTML = "A verification email is on its way to <b>" + esc(S.email || "your inbox") + "</b>. It can take a minute and sometimes lands in spam. Click its link once, on any device. <button class=\"linkbtn\" id=\"resendV\">Resend it</button>";
+  const b = $("resendV");
+  if(b) b.onclick = async () => { b.disabled = true; await AUTH.sendVerify(S.email); b.textContent = "Sent again"; };
+}
+async function markVerified(){
+  if(!S.user || S.verified) return;
+  const r = await sbFetch("/profiles?id=eq." + encodeURIComponent(S.user.id), { method: "PATCH", body: JSON.stringify({ email_verified: true }) });
+  if(r !== null){ S.verified = true; renderVerify(); emit("verified", { node: "-" }); }
 }
 function enterAs(u, returning){
   S.user = { id:u.id, name:u.name, cohort:u.team||"No team" };
@@ -1448,6 +2316,7 @@ function enterAs(u, returning){
   S.unlocks  = lsGet("tps_unlocks_"+S.courseId+"_"+u.id) || {};
   applyAccent();
   hydrateProgress();
+  cloudPush();
   emit("session_start",{node:"-",client:{device:innerWidth<700?"mobile-web":"desktop-web",embed:S.via}});
   const av = lsGet("tps_avatar_"+u.id);
   if(returning && av){
@@ -1543,6 +2412,7 @@ $("brBegin").onclick=()=>{ renderHome(); show("home"); };
 /* ---------- home / scenario map ---------- */
 function renderHome(){
   const c = COURSES[S.courseId];
+  renderVerify();
   $("courseTag").textContent = c.level+" · "+PACK.brand.product;
   $("courseTitle").textContent = c.title;
   $("courseDesc").textContent = c.desc;
@@ -1585,6 +2455,7 @@ function tryUnlock(i){
   const v=($("code_"+i).value||"").trim().toUpperCase();
   if(v && v===sc.unlock.code){
     S.unlocks[sc.id]=true; lsSet("tps_unlocks_"+S.courseId+"_"+S.user.id, S.unlocks);
+    cloudPush();
     emit("day_unlock",{node:"-", scenario:sc.id});
     renderHome();
   } else {
@@ -1630,9 +2501,10 @@ function saveRun(){
   lsSet(runKey(), { scnId:ss.scn.id, set:ss.set||0, nodeId:ss.nodeId, simDay:ss.simDay,
     hints:ss.hints, wrong:ss.wrong, net:ss.net, ledger:ss.ledger, path:ss.path,
     crit:ss.crit, sloMiss:ss.sloMiss, mistakes:ss.mistakes, flags:ss.flags, carry:ss.carry,
-    prediction:ss.prediction, attempt:S.attempts[ss.scn.id]||1 });
+    prediction:ss.prediction, attempt:S.attempts[ss.scn.id]||1, t: Date.now() });
+  cloudPush();
 }
-function clearRun(){ try{ localStorage.removeItem(runKey()); }catch(e){} }
+function clearRun(){ try{ localStorage.removeItem(runKey()); }catch(e){} cloudPush(); }
 function resumeRun(){
   const snap=lsGet(runKey()); if(!snap) return;
   const scn=scnList().find(x=>x.id===snap.scnId); if(!scn){ clearRun(); renderHome(); return; }
@@ -1682,6 +2554,7 @@ function renderNode(){
   const chs = typeof n.choices==="function" ? n.choices(ss) : n.choices;
   const order=shuffleIdx(chs.length);   // randomized display order; logic uses original index
   if(n.kind==="multi"){
+    $("lockBar").style.display="none";
     $("multiNote").style.display="block";
     $("multiNote").textContent=`Select exactly ${n.max}, then confirm.`;
     $("confirmBar").style.display="block"; $("confirmBtn").disabled=true;
@@ -1695,13 +2568,23 @@ function renderNode(){
     $("confirmBtn").onclick=()=>resolveMulti(n);
   } else {
     $("multiNote").style.display="none"; $("confirmBar").style.display="none";
+    /* v1.1.1: two-step answering. Selecting highlights and stays changeable;
+       the call only commits on "Lock it in", and The Read follows the lock. */
+    PEND.c=null; PEND.btn=null; ss.locked=false;
     order.forEach((orig,slot)=>{
       const c=chs[orig];
       const b=document.createElement("button"); b.className="choice";
       b.innerHTML=`<span class="key">${String.fromCharCode(97+slot)}</span>${c.t}`;
-      b.onclick=()=>pick(n,c,b);
+      b.onclick=()=>{
+        if(ss.locked) return;
+        document.querySelectorAll("#choiceBox .choice").forEach(x=>x.classList.remove("selected"));
+        b.classList.add("selected");
+        PEND.c=c; PEND.btn=b;
+        $("lockBtn").disabled=false;
+      };
       box.appendChild(b);
     });
+    $("lockBar").style.display="block"; $("lockBtn").disabled=true;
   }
   emit("node_enter",{sim_clock_day:ss.simDay, money_balance:liveBalance()});
   ss.t0=Date.now();
@@ -1730,8 +2613,10 @@ function whyBlock(q,why){
   return `<div class="why ${cls}"><span class="wtag">${VERDICT[q]} · the read</span>${why}</div>`;
 }
 
+const PEND = { c:null, btn:null };
 function pick(n,c,btn){
-  const ss=S.sess; ss.nodeAttempt++;
+  const ss=S.sess; ss.nodeAttempt++; ss.locked=true;
+  $("lockBar").style.display="none";
   document.querySelectorAll("#choiceBox .choice").forEach(b=>b.disabled=true);
   btn.classList.add("selected");
   if(c.days) ss.simDay+=c.days;
@@ -1751,7 +2636,7 @@ function pick(n,c,btn){
   if(c.why) emit("rationale_view",{outcome:cls});
   ss.next = typeof c.goto==="function" ? c.goto(ss) : c.goto;
   $("nextBar").style.display="block";
-  $("nextBtn").textContent = ss.next==="END"?"View debrief →":"Lock it in. Next call →";
+  $("nextBtn").textContent = ss.next==="END"?"View debrief →":"Next call →";
   $("conseqBox").scrollIntoView({behavior:"smooth",block:"center"});
 }
 
@@ -2183,11 +3068,11 @@ function facStatus(o){
 async function facRefresh(){
   $("facNote").textContent="Fetching the cohort…";
   FAC.maxPts=facMaxPts();
-  const prof = await sbFetch("/profiles?select=id,name,team,created_at&order=created_at.asc", {probe:true, headers:{"Prefer":""}});
+  const prof = await sbFetch("/profiles?select=id,name,team,email,email_verified,created_at&order=created_at.asc", {probe:true, headers:{"Prefer":""}});
   const ses = await sbFetch("/sessions?course_id=eq."+FAC.course+"&select=profile_id,scenario_id,attempt,composite,points,net,created_at&order=created_at.asc", {probe:true, headers:{"Prefer":""}});
   FAC.cloud = prof!==null;
   const map={};
-  (prof||[]).forEach(pr=>{ if(pr&&pr.name) map[pr.id]={id:pr.id,name:pr.name,team:pr.team||"",created:(pr.created_at||"").slice(0,10),d:{}}; });
+  (prof||[]).forEach(pr=>{ if(pr&&pr.name) map[pr.id]={id:pr.id,name:pr.name,team:pr.team||"",ver:!!pr.email_verified,email:pr.email||"",created:(pr.created_at||"").slice(0,10),d:{}}; });
   (ses||[]).forEach(r=>{
     const o=map[r.profile_id]; if(!o) return;
     const d=o.d[r.scenario_id]=o.d[r.scenario_id]||{pts:-1,comp:0,net:0};
@@ -2239,6 +3124,7 @@ function renderFacTable(){
       <td>${i+1}</td>
       <td><b>${esc(o.name)}</b>${o.created?`<br><span class="sub" style="font-size:.68rem">registered ${esc(o.created)}</span>`:""}</td>
       <td>${esc(o.team||"·")}</td>
+      <td title="${esc(o.email||"")}">${o.ver?"✓":"·"}</td>
       ${FAC.dayIds.map(id=>`<td>${day(id)}</td>`).join("")}
       <td><b>${o.totalPts}</b></td>
       <td><b>${o.pct}%</b></td>
@@ -2256,7 +3142,7 @@ function renderFacTable(){
       </td></tr>`;
   }).join("");
   $("facTable").innerHTML =
-    `<tr><th>#</th><th>Participant</th><th>Team</th>${FAC.dayIds.map((_,i)=>`<th>D${i+1}</th>`).join("")}<th>Pts</th><th>Score</th><th>Capital</th><th>Rank</th><th>Att /${FAC.dayIds.length}</th><th>Participation</th><th>Result</th><th>Remarks</th><th>Actions</th></tr>`
+    `<tr><th>#</th><th>Participant</th><th>Team</th><th>✉</th>${FAC.dayIds.map((_,i)=>`<th>D${i+1}</th>`).join("")}<th>Pts</th><th>Score</th><th>Capital</th><th>Rank</th><th>Att /${FAC.dayIds.length}</th><th>Participation</th><th>Result</th><th>Remarks</th><th>Actions</th></tr>`
     + (rows || `<tr><td colspan="15" class="sub" style="padding:16px">No participants yet. Results appear here as the cohort registers and plays.</td></tr>`);
 }
 function facDel(i){
@@ -2293,13 +3179,13 @@ function facPrint(i){
 }
 function facCSVOut(){
   const P=FPD.prog;
-  const head=["Name","Team"].concat(FAC.dayIds.map((_,i)=>["Day"+(i+1)+" pts","Day"+(i+1)+" P&L"]).flat()).concat(["Total pts","Score %","Capital","Rank","Days played","Attendance /"+FAC.dayIds.length,"Participation","Result","Remarks","Programme","Cohort","Venue","Dates","Facilitator","Pass threshold %"]);
+  const head=["Name","Team","Email","Verified"].concat(FAC.dayIds.map((_,i)=>["Day"+(i+1)+" pts","Day"+(i+1)+" P&L"]).flat()).concat(["Total pts","Score %","Capital","Rank","Days played","Attendance /"+FAC.dayIds.length,"Participation","Result","Remarks","Programme","Cohort","Venue","Dates","Facilitator","Pass threshold %"]);
   const q=v=>{ v=String(v==null?"":v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
   const lines=[head.map(q).join(",")];
   FAC.roster.forEach((o,i)=>{
     const per=perOf(o.id); o.status=facStatus(o);
     const d=id=>o.d[id]||{pts:"",net:""};
-    lines.push([o.name,o.team].concat(FAC.dayIds.map(id=>[d(id).pts,d(id).net]).flat()).concat([
+    lines.push([o.name,o.team,o.email||"",o.ver?"Yes":"No"].concat(FAC.dayIds.map(id=>[d(id).pts,d(id).net]).flat()).concat([
       o.totalPts,o.pct,o.capital,o.rank,o.daysDone,(per.att===""?o.daysDone:per.att),per.part||"Good",
       o.status==="pass"?"Pass":o.status==="fail"?"Fail":"Incomplete",per.rem||"",P.title,P.cohort,P.venue,P.dates,P.fac,P.thresh]).map(q).join(","));
   });
@@ -2351,7 +3237,28 @@ function openFac(){
 }
 
 /* ---------- nav & boot ---------- */
-$("enterBtn").onclick=register;
+$("enterBtn").onclick=createAccount;
+$("liGo").onclick=signIn;
+$("forgotBtn").onclick=async ()=>{
+  const e=$("liEmail").value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return authNote("Type your account email in the box above first, then press the reset link again.");
+  $("forgotBtn").disabled=true; await AUTH.recover(e); $("forgotBtn").disabled=false;
+  authNote("If that email has an account, a reset link is on its way. Check the inbox, spam included.", true);
+};
+$("mlBtn").onclick=async ()=>{
+  const e=$("liEmail").value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return authNote("Type your account email in the box above first, then press the link button again.");
+  $("mlBtn").disabled=true; const r=await AUTH.sendVerify(e); $("mlBtn").disabled=false;
+  if(!r.ok && r.status !== 0 && r.status !== 429) return authNote(authErr(r));
+  authNote("If that email has an account, a one-time sign-in link is on its way. It signs you in and verifies the address. Give it a minute, and check spam.", true);
+};
+$("pwGo").onclick=async ()=>{
+  const p=$("pwNew").value;
+  if(p.length<8){ $("pwNote").textContent="At least 8 characters."; return; }
+  $("pwGo").disabled=true; const r=await AUTH.setPassword(p); $("pwGo").disabled=false;
+  if(!r.ok){ $("pwNote").textContent="Could not set the password. The link may have expired; request a fresh one from the sign-in screen."; return; }
+  $("pwNote").textContent="Saved. Taking you in…"; sessionContinue();
+};
 $("facLink").onclick=()=>{ show("facil"); if(lsGet("tps_fac_ok")){ openFac(); } else { $("facGate").style.display="block"; $("facBody").style.display="none"; } };
 $("facEnter").onclick=()=>{
   if(($("facCode").value||"").trim().toUpperCase()===FAC.code){ lsSet("tps_fac_ok",true); $("facCode").value=""; openFac(); }
@@ -2362,18 +3269,28 @@ $("facRefresh").onclick=facRefresh;
 $("facCSV").onclick=facCSVOut;
 $("facZipAll").onclick=facZipAll;
 $("facMailAll").onclick=facMailAll;
+$("lockBtn").onclick=()=>{ if(PEND.c && S.sess && !S.sess.locked) pick(node(), PEND.c, PEND.btn); };
 $("pdGo").onclick=()=>beginRun(S.pendingScn, $("pdText").value.trim());
 $("pdSkip").onclick=()=>beginRun(S.pendingScn, "");
 $("navHome").onclick=()=>{renderHome();show("home")};
 $("navLB").onclick=()=>{renderLB();show("lboard")};
-$("navOut").onclick=()=>{ $("topbar").classList.remove("show"); $("telebtn").classList.remove("show"); initReg(); show("signin"); };
+$("navOut").onclick=async ()=>{
+  try{ await Promise.race([cloudPushNow(), new Promise(r=>setTimeout(r, 1500))]); }catch(e){}
+  AUTH.signout(); $("topbar").classList.remove("show"); $("telebtn").classList.remove("show"); initReg(); show("signin");
+};
 $("dsHome").onclick=()=>{renderHome();show("home")};
 $("dsFull").onclick=()=>{renderLB();show("lboard")};
 $("telebtn").onclick=()=>$("teledrawer").classList.toggle("show");
 $("teleClose").onclick=()=>$("teledrawer").classList.remove("show");
 window.addEventListener("online", ()=>{ if(S.user) flushOutbox(); });
-initReg();
-probeBackend();
+(function boot(){
+  const link = bootAuthHash();
+  AUTH.load();
+  if(link === "recovery"){ show("pwreset"); probeBackend(); return; }
+  if(link){ sessionContinue().then(()=>{ markVerified(); }); probeBackend(); return; }
+  initReg();
+  probeBackend();
+})();
 </script>
 </body>
 </html>
