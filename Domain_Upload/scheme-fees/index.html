@@ -261,7 +261,7 @@ input[type=text]:focus,input[type=email]:focus,input[type=password]:focus,textar
 <!-- SIGN IN -->
 <section id="signin" class="screen active">
   <div class="logo">The Payment School <span>Simulator</span></div>
-  <div class="signin-sub">by intreensic · payments theory, put to work</div>
+  <div class="signin-sub">by intreensic · payments theory, put to work · build <b id="buildStamp">v1.1.1</b></div>
   <div class="card" id="regReturn" style="display:none;margin-bottom:14px">
     <h2 style="margin-bottom:4px">Welcome back</h2>
     <p class="sub" id="regReturnSub"></p>
@@ -313,6 +313,7 @@ input[type=text]:focus,input[type=email]:focus,input[type=password]:focus,textar
       </div>
       <button class="btn" id="liGo" style="width:100%">Sign in →</button>
       <button class="linkbtn" id="forgotBtn" style="width:100%;margin-top:8px">Forgot password? Email me a reset link</button>
+      <button class="linkbtn" id="mlBtn" style="width:100%;margin-top:4px">Or email me a one-time sign-in link (also verifies your email)</button>
     </div>
     <div class="sub" id="authNote" style="margin-top:10px;min-height:18px"></div>
     <div class="ssobox">
@@ -459,6 +460,7 @@ input[type=text]:focus,input[type=email]:focus,input[type=password]:focus,textar
       <span class="sub" id="hintCost"></span>
     </div>
     <div class="hinttext" id="hintText"></div>
+    <div class="confirmbar" id="lockBar" style="display:none"><button class="btn" id="lockBtn" disabled>Lock it in →</button></div>
     <div class="confirmbar" id="nextBar" style="display:none"><button class="btn" id="nextBtn">Continue →</button></div>
   </div>
 </section>
@@ -614,6 +616,10 @@ input[type=text]:focus,input[type=email]:focus,input[type=password]:focus,textar
    (cross-device resume, mid-run included), token-aware writes
    under ownership RLS. Series B: 30 parity questions; replays
    alternate sets, cohort-synchronised by attempt number.
+   v1.1.1: two-step answering (select, then Lock it in, then Next
+   call), progress flush on sign-out and page close (keepalive),
+   a one-time email sign-in link on the sign-in tab, and a build
+   stamp on the sign-in screen so stale caches identify themselves.
    ============================================================ */
 
 /* ============================================================
@@ -644,7 +650,7 @@ input[type=text]:focus,input[type=email]:focus,input[type=password]:focus,textar
    ============================================================ */
 
 const PACK = {
-  version: "v1.1",
+  version: "v1.1.1",
   courseId: "scheme-fees",
   dayIds: ["sf_day1","sf_day2","sf_day3"],
   brand: {
@@ -2239,6 +2245,23 @@ function cloudPush(){
       headers: { "Prefer": "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(body) });
   }, 1200);
 }
+function cloudPushNow(){
+  if(!AUTH.s || !S.user) return Promise.resolve(null);
+  clearTimeout(PUSH_T);
+  const body = JSON.stringify([{ profile_id: S.user.id, course_id: S.courseId, state: progressState(S.user), updated_at: new Date().toISOString() }]);
+  return sbFetch("/progress?on_conflict=profile_id,course_id", { method: "POST",
+    headers: { "Prefer": "resolution=merge-duplicates,return=minimal" }, body: body });
+}
+/* tab or window closing: one keepalive shot so the last answers travel */
+window.addEventListener("pagehide", () => {
+  try{
+    if(!AUTH.s || !S.user || !AUTH.fresh()) return;
+    const body = JSON.stringify([{ profile_id: S.user.id, course_id: S.courseId, state: progressState(S.user), updated_at: new Date().toISOString() }]);
+    fetch(BACKEND.url + "/rest/v1/progress?on_conflict=profile_id,course_id", { method: "POST", keepalive: true,
+      headers: { "apikey": BACKEND.key, "Authorization": "Bearer " + AUTH.s.access_token,
+        "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates,return=minimal" }, body: body });
+  }catch(e){}
+});
 async function pullProgress(u){
   if(!AUTH.s) return;
   const rows = await sbFetch("/progress?profile_id=eq." + encodeURIComponent(u.id) + "&course_id=eq." + encodeURIComponent(u.courseId) + "&select=state", { headers: { "Prefer": "" } });
@@ -2270,7 +2293,7 @@ function renderVerify(){
     return;
   }
   el.style.display = "block"; el.style.color = "";
-  el.innerHTML = "A verification email is on its way to <b>" + esc(S.email || "your inbox") + "</b>. Click its link once, on any device. <button class=\"linkbtn\" id=\"resendV\">Resend it</button>";
+  el.innerHTML = "A verification email is on its way to <b>" + esc(S.email || "your inbox") + "</b>. It can take a minute and sometimes lands in spam. Click its link once, on any device. <button class=\"linkbtn\" id=\"resendV\">Resend it</button>";
   const b = $("resendV");
   if(b) b.onclick = async () => { b.disabled = true; await AUTH.sendVerify(S.email); b.textContent = "Sent again"; };
 }
@@ -2531,6 +2554,7 @@ function renderNode(){
   const chs = typeof n.choices==="function" ? n.choices(ss) : n.choices;
   const order=shuffleIdx(chs.length);   // randomized display order; logic uses original index
   if(n.kind==="multi"){
+    $("lockBar").style.display="none";
     $("multiNote").style.display="block";
     $("multiNote").textContent=`Select exactly ${n.max}, then confirm.`;
     $("confirmBar").style.display="block"; $("confirmBtn").disabled=true;
@@ -2544,13 +2568,23 @@ function renderNode(){
     $("confirmBtn").onclick=()=>resolveMulti(n);
   } else {
     $("multiNote").style.display="none"; $("confirmBar").style.display="none";
+    /* v1.1.1: two-step answering. Selecting highlights and stays changeable;
+       the call only commits on "Lock it in", and The Read follows the lock. */
+    PEND.c=null; PEND.btn=null; ss.locked=false;
     order.forEach((orig,slot)=>{
       const c=chs[orig];
       const b=document.createElement("button"); b.className="choice";
       b.innerHTML=`<span class="key">${String.fromCharCode(97+slot)}</span>${c.t}`;
-      b.onclick=()=>pick(n,c,b);
+      b.onclick=()=>{
+        if(ss.locked) return;
+        document.querySelectorAll("#choiceBox .choice").forEach(x=>x.classList.remove("selected"));
+        b.classList.add("selected");
+        PEND.c=c; PEND.btn=b;
+        $("lockBtn").disabled=false;
+      };
       box.appendChild(b);
     });
+    $("lockBar").style.display="block"; $("lockBtn").disabled=true;
   }
   emit("node_enter",{sim_clock_day:ss.simDay, money_balance:liveBalance()});
   ss.t0=Date.now();
@@ -2579,8 +2613,10 @@ function whyBlock(q,why){
   return `<div class="why ${cls}"><span class="wtag">${VERDICT[q]} · the read</span>${why}</div>`;
 }
 
+const PEND = { c:null, btn:null };
 function pick(n,c,btn){
-  const ss=S.sess; ss.nodeAttempt++;
+  const ss=S.sess; ss.nodeAttempt++; ss.locked=true;
+  $("lockBar").style.display="none";
   document.querySelectorAll("#choiceBox .choice").forEach(b=>b.disabled=true);
   btn.classList.add("selected");
   if(c.days) ss.simDay+=c.days;
@@ -2600,7 +2636,7 @@ function pick(n,c,btn){
   if(c.why) emit("rationale_view",{outcome:cls});
   ss.next = typeof c.goto==="function" ? c.goto(ss) : c.goto;
   $("nextBar").style.display="block";
-  $("nextBtn").textContent = ss.next==="END"?"View debrief →":"Lock it in. Next call →";
+  $("nextBtn").textContent = ss.next==="END"?"View debrief →":"Next call →";
   $("conseqBox").scrollIntoView({behavior:"smooth",block:"center"});
 }
 
@@ -3209,6 +3245,13 @@ $("forgotBtn").onclick=async ()=>{
   $("forgotBtn").disabled=true; await AUTH.recover(e); $("forgotBtn").disabled=false;
   authNote("If that email has an account, a reset link is on its way. Check the inbox, spam included.", true);
 };
+$("mlBtn").onclick=async ()=>{
+  const e=$("liEmail").value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return authNote("Type your account email in the box above first, then press the link button again.");
+  $("mlBtn").disabled=true; const r=await AUTH.sendVerify(e); $("mlBtn").disabled=false;
+  if(!r.ok && r.status !== 0 && r.status !== 429) return authNote(authErr(r));
+  authNote("If that email has an account, a one-time sign-in link is on its way. It signs you in and verifies the address. Give it a minute, and check spam.", true);
+};
 $("pwGo").onclick=async ()=>{
   const p=$("pwNew").value;
   if(p.length<8){ $("pwNote").textContent="At least 8 characters."; return; }
@@ -3226,11 +3269,15 @@ $("facRefresh").onclick=facRefresh;
 $("facCSV").onclick=facCSVOut;
 $("facZipAll").onclick=facZipAll;
 $("facMailAll").onclick=facMailAll;
+$("lockBtn").onclick=()=>{ if(PEND.c && S.sess && !S.sess.locked) pick(node(), PEND.c, PEND.btn); };
 $("pdGo").onclick=()=>beginRun(S.pendingScn, $("pdText").value.trim());
 $("pdSkip").onclick=()=>beginRun(S.pendingScn, "");
 $("navHome").onclick=()=>{renderHome();show("home")};
 $("navLB").onclick=()=>{renderLB();show("lboard")};
-$("navOut").onclick=()=>{ AUTH.signout(); $("topbar").classList.remove("show"); $("telebtn").classList.remove("show"); initReg(); show("signin"); };
+$("navOut").onclick=async ()=>{
+  try{ await Promise.race([cloudPushNow(), new Promise(r=>setTimeout(r, 1500))]); }catch(e){}
+  AUTH.signout(); $("topbar").classList.remove("show"); $("telebtn").classList.remove("show"); initReg(); show("signin");
+};
 $("dsHome").onclick=()=>{renderHome();show("home")};
 $("dsFull").onclick=()=>{renderLB();show("lboard")};
 $("telebtn").onclick=()=>$("teledrawer").classList.toggle("show");
