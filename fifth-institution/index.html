@@ -691,13 +691,20 @@ td.hm.none{background:var(--panel2);color:var(--muted);font-weight:400}
    version: the annual participation fee, a captured card, a
    settlement that did not arrive, a fraud curve that came with
    the volume, and four hours of downtime on a Saturday.
+   v2.0.1: scoring fix. coursePts, bank and the conduct ledger all
+   summed S.done, which is written only at finish(). With five acts
+   that climbed after each act; with one continuous run it stayed
+   empty all session, so the top bar sat at 0/70, the Deal Book at
+   zero, the standing at the bottom band, and a team uploading at a
+   checkpoint saw its own row at zero. They now read ledger(), which
+   lays the live session over what is committed.
    Source of truth: GhIPSS SEP Fifth Institution Facilitator
    Guide, Issue 1. Nkabom Savings and Loans, Ankobra Gold Fields
    and every person named are fictional.
    ============================================================ */
 
 const PACK = {
-  version: "v2.0",
+  version: "v2.0.1",
   courseId: "fifth-institution",
   dayIds: ["fi_run"],
   unitWord: "Run",
@@ -1716,22 +1723,41 @@ function emit(type, extra={}){
 
 /* ---------- ranks & career math ---------- */
 function tiers(){ return COURSES[S.courseId].tiers; }
-function coursePts(){ return Object.values(S.done).reduce((a,d)=>a+(d.bestPts||0),0); }
-function bank(){ return S.startBudget + Object.values(S.done).reduce((a,d)=>a+(d.lastNet||0),0); }
+/* the run in progress, in the same shape as a committed result */
+function liveRun(){
+  const ss=S.sess;
+  if(!ss || !ss.scn) return null;
+  return { id:ss.scn.id, bestPts:Math.round(ss.sp||0), lastNet:ss.net||0,
+           flags:(ss.flags_raised||[]).slice(), cleared:(ss.flags_cleared||[]).slice() };
+}
+/* what is committed, with the live run laid over its own scenario */
+function ledger(){
+  const out=Object.assign({}, S.done), lr=liveRun();
+  if(lr) out[lr.id]=lr;
+  return out;
+}
+function coursePtsOf(L){ return Object.values(L).reduce((a,d)=>a+(d.bestPts||0),0); }
+function bankOf(L){ return S.startBudget + Object.values(L).reduce((a,d)=>a+(d.lastNet||0),0); }
+function coursePts(){ return coursePtsOf(ledger()); }
+function bank(){ return bankOf(ledger()); }
 function bankExcl(scnId){ return S.startBudget + Object.entries(S.done).filter(([k])=>k!==scnId).reduce((a,[,d])=>a+(d.lastNet||0),0); }
 function rankIndex(pts,money,T){ let idx=0; for(let i=0;i<T.length;i++){ if(pts>=T[i][1] && money>=T[i][2]) idx=i; } return idx; }
 /* ---------- the conduct ledger ----------
    A breach raises a flag keyed by item. A strong Probe B answer on the same
    item clears it. Flags standing at the close apply the caps: two cap the
    ending at index 2, three or more cap it at index 1. */
-function flagsRaised(){ const s=new Set();
-  Object.values(S.done).forEach(d=>(d.flags||[]).forEach(k=>s.add(k))); return s; }
-function flagsCleared(){ const s=new Set();
-  Object.values(S.done).forEach(d=>(d.cleared||[]).forEach(k=>s.add(k))); return s; }
-function flagsStanding(){ const c=flagsCleared(); let k=0; flagsRaised().forEach(f=>{ if(!c.has(f)) k++; }); return k; }
+function flagsRaisedOf(L){ const s=new Set();
+  Object.values(L).forEach(d=>(d.flags||[]).forEach(k=>s.add(k))); return s; }
+function flagsClearedOf(L){ const s=new Set();
+  Object.values(L).forEach(d=>(d.cleared||[]).forEach(k=>s.add(k))); return s; }
+function flagsStandingOf(L){ const c=flagsClearedOf(L); let k=0; flagsRaisedOf(L).forEach(f=>{ if(!c.has(f)) k++; }); return k; }
+function flagsRaised(){ return flagsRaisedOf(ledger()); }
+function flagsCleared(){ return flagsClearedOf(ledger()); }
+function flagsStanding(){ return flagsStandingOf(ledger()); }
 function capIndex(flags,T){ if(flags>=3) return 1; if(flags>=2) return 2; return T.length-1; }
-function endingIndex(){ const T=tiers();
-  return Math.min(rankIndex(coursePts(),bank(),T), capIndex(flagsStanding(),T)); }
+function endingIndexOf(L){ const T=tiers();
+  return Math.min(rankIndex(coursePtsOf(L),bankOf(L),T), capIndex(flagsStandingOf(L),T)); }
+function endingIndex(){ return endingIndexOf(ledger()); }
 function endingNow(){ return tiers()[endingIndex()][0]; }
 function tierForCareer(){ return tiers()[rankIndex(coursePts(),bank(),tiers())]; }
 function nextTier(){ const T=tiers(), i=rankIndex(coursePts(),bank(),T); return i<T.length-1?T[i+1]:null; }
@@ -2040,8 +2066,9 @@ function renderNode(){
     : ("Item "+n.item+" of 20"+(n.branch?" · branch point":""));
   paintMoney();
   const pf=$("playFlagChip");
-  if(pf){ const fs2=flagsStanding()+((S.sess.flags_raised||[]).length)-((S.sess.flags_cleared||[]).length);
-    pf.style.display = fs2>0?"inline-flex":"none"; $("playFlags").textContent=Math.max(0,fs2); }
+  if(pf){ const fs2=flagsStanding();
+    pf.style.display = fs2>0?"inline-flex":"none"; $("playFlags").textContent=fs2; }
+  hud();
   $("nodeObj").textContent=n.obj||"-";
   $("nodeTitle").textContent=n.title;
   $("nodeNarr").innerHTML = typeof n.narr==="function" ? n.narr(ss) : n.narr;
@@ -2168,6 +2195,7 @@ function pick(n,c,btn){
   $("conseqBox").innerHTML=`<div class="conseq ${cls}">${spChip(c,n)}${c.flag?`<span class="flagchip">⚑ Conduct flag raised</span>`:""}${c.clears?`<span class="flagchip ok">⚑ Conduct flag cleared</span>`:""}${c.cons}${mny?`<br>${plChip(mny)}`:""}</div>`+whyBlock(c.q,c.why);
   emit("consequence_view",{outcome:cls});
   if(c.why) emit("rationale_view",{outcome:cls});
+  hud();
   ss.next = typeof c.goto==="function" ? c.goto(ss) : c.goto;
   $("nextBar").style.display="block";
   /* A checkpoint node hands the room back to the facilitator: the team uploads
@@ -2263,7 +2291,7 @@ function finish(){
 
   /* standing BEFORE committing this run */
   const prev=S.done[scn.id];
-  const oldIdx=endingIndex(), oldName=tiers()[oldIdx][0];
+  const oldIdx=endingIndexOf(S.done), oldName=tiers()[oldIdx][0];
 
   /* commit: the better attempt keeps its points, its flags and its record;
      the Deal Book always reflects the most recent run. */
@@ -2412,7 +2440,7 @@ function lbCtx(){
   const c=COURSES[S.courseId];
   return { days:!!c.days, budget:c.budget,
     dayIds:scnList().filter(x=>x.day).map(x=>x.id),
-    done:S.done, meId:S.user?S.user.id:null,
+    done:ledger(), meId:S.user?S.user.id:null,
     meName:S.avatar?S.avatar.name:(S.user?S.user.name:""), meTeam:S.team };
 }
 function assembleLB(){
