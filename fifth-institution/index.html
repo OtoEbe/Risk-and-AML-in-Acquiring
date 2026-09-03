@@ -297,7 +297,7 @@ td.hm.none{background:var(--panel2);color:var(--muted);font-weight:400}
   <div class="chip flagchip-hud" id="hudFlagChip" style="display:none">⚑ <b id="hudFlags">0</b> standing</div>
   <div class="chip cloud" id="cloudChip">Cloud: <b id="cloudState">checking</b></div>
   <div class="spacer"></div>
-  <button class="linkbtn" id="navHome">The five acts</button>
+  <button class="linkbtn" id="navHome">The run</button>
   <button class="linkbtn" id="navLB">Leaderboard</button>
   <button class="linkbtn" id="navOut">Sign out</button>
 </div></div>
@@ -345,7 +345,7 @@ td.hm.none{background:var(--panel2);color:var(--muted);font-weight:400}
 <section id="avatar" class="screen">
   <div class="tag" id="avCourseTag"></div>
   <h1>Your team badge</h1>
-  <p class="sub">Pick a colour and a mark for the leaderboard. This badge carries your points, your Deal Book and your conduct ledger through all five acts.</p>
+  <p class="sub">Pick a colour and a mark for the leaderboard. This badge carries your points, your Deal Book and your conduct ledger through all twenty decisions.</p>
   <div class="card section-gap">
     <div class="field">
       <label>Play mode</label>
@@ -512,7 +512,21 @@ td.hm.none{background:var(--panel2);color:var(--muted);font-weight:400}
 
 <!-- LEADERBOARD -->
 <section id="lboard" class="screen">
-  <div class="confirmbar" id="lbResume" style="display:none;margin-bottom:14px"><button class="btn" id="lbResumeBtn">Continue the run →</button><span class="sub" id="lbResumeNote" style="margin-left:10px"></span></div>
+  <div id="lbResume" style="display:none;margin-bottom:14px">
+    <div class="confirmbar" style="align-items:flex-start">
+      <div style="flex:1">
+        <div style="font-weight:700">⏸ Stop. The facilitator is taking this one.</div>
+        <div class="sub" id="lbResumeNote" style="margin-top:4px"></div>
+      </div>
+    </div>
+    <div class="confirmbar" id="lbResumeGate" style="margin-top:8px">
+      <span class="sub">Facilitator code to resume:</span>
+      <input id="lbResumeCode" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+        style="margin:0 8px;padding:8px 10px;min-width:170px;text-transform:uppercase;letter-spacing:.06em" placeholder="code">
+      <button class="btn" id="lbResumeBtn">Release the room →</button>
+      <span class="sub" id="lbResumeErr" style="margin-left:10px;color:#C0392B"></span>
+    </div>
+  </div>
   <div class="tag">Cohort standings</div>
   <h1 id="lbTitle">Leaderboard</h1>
   <p class="sub" id="lbSub">Ranked by points from best attempts, with capital alongside. Rank needs both. Mastery is tracked separately and never ranked.</p>
@@ -691,6 +705,16 @@ td.hm.none{background:var(--panel2);color:var(--muted);font-weight:400}
    version: the annual participation fee, a captured card, a
    settlement that did not arrive, a fraud curve that came with
    the volume, and four hours of downtime on a Saturday.
+   v2.1 (3 September 2026, morning of the run): three changes. The pricing
+   items came down from five to three, because the week already teaches the
+   arithmetic and the room needs judgement. Item 6, the interchange pool split,
+   is now the mine writing to GhIPSS to go around its own bank. Item 8, the
+   annual participation fee, is now the board paper that promises three things
+   the agreement does not. Both keep their item number, their money band and
+   their place in the run, so every scoring invariant is unchanged; the rubric
+   weights follow the new mix. Second, each curve ball now ends in a STOP: the
+   standings go up and the run will not continue until a facilitator types the
+   resume code for that stop. Third, the board was cleared for the cohort.
    v2.0.1: scoring fix. coursePts, bank and the conduct ledger all
    summed S.done, which is written only at finish(). With five acts
    that climbed after each act; with one continuous run it stayed
@@ -704,7 +728,7 @@ td.hm.none{background:var(--panel2);color:var(--muted);font-weight:400}
    ============================================================ */
 
 const PACK = {
-  version: "v2.0.1",
+  version: "v2.1",
   courseId: "fifth-institution",
   dayIds: ["fi_run"],
   unitWord: "Run",
@@ -714,7 +738,11 @@ const PACK = {
     org: "The Payment School · intreensic",
     zipStem: "FifthInstitution"
   },
-  fac: { code: "MANDATE" },
+  /* MANDATE opens the facilitator console. The two resume codes are the STOP
+     at each curve ball: the team cannot leave the standings screen until one is
+     typed in, so the room moves together. Either the stop's own code or MANDATE
+     releases a table. Change a code here and nowhere else. */
+  fac: { code: "MANDATE", resume: { Q9: "HARMATTAN", Q13: "BAOBAB" } },
   programme: {
     title: "gh-link Scheme Enablement Programme · Project Phoenix",
     cohort: "GhIPSS Scheme Enablement Programme",
@@ -777,20 +805,20 @@ id:"fi_run", day:1, title:"The Fifth Institution", mult:1.0, start:"Q0", budget:
 storyTime:"Week 1 to month six", domainLabel:"Days 1 to 4",
 blurb:"Twenty decisions take the Nkabom account from the readiness meeting to its first quarterly business review. No breaks between them except the two the facilitator calls. One practice item first, unscored.",
 criteria:[
- {id:"scheme",name:"Operating as a scheme (Day 1)",w:28},
- {id:"money",name:"Pricing and incentives (Day 2)",w:24},
+ {id:"scheme",name:"Operating as a scheme (Day 1)",w:34},
+ {id:"money",name:"Pricing and incentives (Day 2)",w:18},
  {id:"ops",name:"Products, standards and operations (Day 3)",w:28},
  {id:"qbr",name:"The QBR and the relationship (Day 4)",w:20}],
 slos:[
  {id:"O1",t:"Place an institution in its cadre and name what a sponsor carries"},
  {id:"O2",t:"Name the gate 1 pack and the window without giving a date"},
  {id:"O3",t:"Read a rule, classify a failure, and hold the rules in an incident"},
- {id:"O4",t:"Compute the ATM cost, the POS split and the card-not-present floor"},
+ {id:"O4",t:"Compute the ATM cost and the card-not-present floor, and hold both under pressure"},
  {id:"O5",t:"Say what may be offered and what may not, under pressure"},
  {id:"O6",t:"Match a product to a customer and order readiness gaps by the go-live rule"},
  {id:"O7",t:"Run a live account: disputes, settlement, fraud and availability"},
  {id:"O8",t:"Read a QBR dashboard, apply the 5/50 rule, and close with owners and dates"}],
-bestPath:"Associate under a sponsoring Principal → obligations before estate → the window, the gate and an honest 'possible, not promised' → certify in waves and switch nothing off → GHS 31,920 a month to the issuer → the pool shared four ways → the floor binds at GHS 0.75 → the schedule is approved and concessions are governed → CURVE BALL: reply tonight, no matching → pay for activation, measured from scheme data → debit for the payroll first → host certification and the sponsor's settlement first → CURVE BALL: facts tonight, a message to the mine, 08:00 tomorrow → the acquirer retains the captured card and Nkabom reissues → the sponsor's obligation, the collateral, the incident opened → check that 3-D Secure is being applied → an outage and a silence, both reported → so far it is an ATM card → the benchmark the rule allows → three actions, owners, dates.",
+bestPath:"Associate under a sponsoring Principal → obligations before estate → the window, the gate and an honest 'possible, not promised' → certify in waves and switch nothing off → GHS 31,920 a month to the issuer → one email answering the mine and the member together → the floor binds at GHS 0.75 → the board paper corrected in the room before anyone signs → CURVE BALL: reply tonight, no matching → pay for activation, measured from scheme data → debit for the payroll first → host certification and the sponsor's settlement first → CURVE BALL: facts tonight, a message to the mine, 08:00 tomorrow → the acquirer retains the captured card and Nkabom reissues → the sponsor's obligation, the collateral, the incident opened → check that 3-D Secure is being applied → an outage and a silence, both reported → so far it is an ATM card → the benchmark the rule allows → three actions, owners, dates.",
 checkpoints:{
  Q9:"Nine decisions gone. Upload your result and see where the room stands before the deal goes to build.",
  Q13:"Pay day survived, one way or another. Upload and look at the board before you take on a live account."},
@@ -1017,24 +1045,24 @@ choices:[
   why:"The ATM scheme fee is on the approved price list and is not waivable. Checking is caution applied to the wrong thing while the member's board pack is being written."}
 ]},
 
-Q6:{item:6, title:"Item 6 · Who receives what", obj:"Pricing · Day 2, M4 (4.1, 4.2)",
-narr:`Month one of the pilot, imagined. A mine worker buys <b>GHS 120</b> of groceries at a supermarket in Tarkwa, on a Coastal Trust terminal, with her Nkabom gh-link card.\n\nUse the 1.0 per cent illustration.\n\n<b>Who receives what?</b>`,
-hint:"There is one pool and four seats. Ask which seat pays for terminals, field staff and the merchant's risk.", hintCrit:"money",
+Q6:{item:6, title:"Item 6 · The mine writes to GhIPSS", obj:"Scheme and conduct · Day 1, M1 (1.2), M2 (2.1); Day 2, M6 (6.4)",
+narr:`Week 4. An email arrives at GhIPSS. It is addressed to your line manager, copied to you, and copied to nobody at Nkabom.\n\nIt is from <b>Sarah Adjei, Group HR Director at Ankobra Gold Fields</b>:\n\n<span class="npc">"We have 6,400 staff and this project exists because of them. We would rather deal with GhIPSS directly. Put the cards in the Ankobra name, we will carry the branding, and we will decide later which bank holds the accounts. Send me your corporate terms."</span>\n\n<b>What do you do with it?</b>`,
+hint:"Two questions before you reply. Who is allowed to hold a card programme, and whose customer is this?", hintCrit:"scheme",
 choices:[
- {t:"Issuer GHS 0.54, acquirer GHS 0.36, scheme GHS 0.18, and the promotion fund GHS 0.12.", q:"ok", sp:1, money:8000, down:{money:1}, goto:"Q7",
-  cons:"Right shares, wrong seats. Kofi spots it.",
-  why:"The acquirer's share is the largest at 45 per cent because it pays for terminals, field staff and the merchant's risk. The issuer receives 30 per cent."},
- {t:"The scheme receives the whole GHS 1.20 and pays the other three parties out later.", q:"weak", sp:0, money:-7000, down:{money:2}, goto:"Q7",
-  mistake:"Described a pool that arrives at the scheme and is distributed afterwards.",
-  cons:"You have described a pool that goes to GhIPSS. It does not.",
-  why:"The pool is shared four ways on every transaction: acquirer 45, issuer 30, scheme 15, promotion fund 10."},
- {t:"Nkabom receives nothing at all, because an Associate has no direct settlement of its own.", q:"weak", sp:0, money:-7000, down:{money:2}, goto:"Q7",
-  mistake:"Confused how the money arrives with whose money it is.",
-  cons:"The CFO asks why he is issuing cards at all.",
-  why:"The issuer's share belongs to the issuer. It arrives through the sponsor's settlement under their agreement, and it is still Nkabom's money."},
- {t:"Pool GHS 1.20: acquirer 0.54, issuer 0.36, scheme 0.18, promotion fund 0.12.", q:"best", sp:3, money:22000, set:{a3_pool_right:true}, goto:"Q7",
-  cons:"Kofi multiplies: 6,400 cards, two purchases a month, GHS 120. GHS 1,536,000 of turnover, a pool of GHS 15,360, and GHS 4,608 for Nkabom.",
-  why:"The pool, the four seats, and the right money in each. The acquirer here is Coastal Trust and the issuer is Nkabom, receiving through its sponsor's settlement."}
+ {t:"Answer her and Nkabom on one email. GhIPSS issues no cards, and the mine's terms sit with the member.", q:"best", sp:3, money:22000, set:{v3_channel_right:true}, goto:"Q7",
+  cons:"Sarah replies to all and asks Dr Mensah-Bonsu for a date. Kofi calls you that evening to say thank you.",
+  why:"A scheme operator is not an issuer. Cards are issued by members, and the mine cannot be one: membership runs to licensed financial institutions, not to their corporate customers. The reply matters as much as the answer. Writing to her alone teaches the mine that GhIPSS is the shorter route, and teaches Nkabom that you take meetings behind them. One email, both parties, and the commercial conversation goes back to the table it belongs on."},
+ {t:"Reply that GhIPSS cannot contract with a corporate, and let Nkabom hear about the approach later.", q:"ok", sp:1, money:8000, down:{scheme:1}, goto:"Q7",
+  cons:"Correct, and Nkabom learns about the email three weeks later from Sarah, in a meeting you are not in.",
+  why:"The rule is right and the handling costs you the member. Nkabom finds out that its largest customer went around it and that GhIPSS answered without saying so. Anything a member's customer sends you about that member's programme goes back copied to the member, even when the answer is no."},
+ {t:"Send the corporate terms she asked for, and let Nkabom and the mine settle the branding themselves.", q:"weak", sp:0, money:-7000, down:{scheme:2}, goto:"Q7",
+  mistake:"Sent scheme terms to a party the scheme does not contract with.",
+  cons:"There are no corporate terms. Whatever you send becomes the document the mine negotiates against.",
+  why:"The scheme has one set of terms and they are written for members. Anything that looks like a price list in a corporate's hands creates an expectation nobody at GhIPSS can honour, and it undercuts the member's own commercial conversation before it has started."},
+ {t:"Meet her alone, and say GhIPSS can place her cards with another bank if Nkabom moves too slowly.", q:"breach", sp:-2, money:-19000, flag:"i6", down:{scheme:2}, goto:"Q7",
+  mistake:"Offered a member's customer to another institution.",
+  cons:"She forwards the note. By Friday it is on Dr Mensah-Bonsu's desk and the foreign brand's proposal is back on Kofi's.",
+  why:"Two failures in one sentence. The scheme does not place business, and offering a member's customer to a competitor breaks the neutrality every member relies on. A scheme operator that shops its own members has nothing left to sell them."}
 ]},
 
 Q7:{item:7, title:"Item 7 · The GHS 45 repayment", obj:"Pricing · Day 2, M4 (4.4)",
@@ -1057,24 +1085,24 @@ choices:[
   why:"Domestic card-not-present is 1.25 per cent with a GHS 0.75 floor. Global and Rest of World is 3.50 per cent with a GHS 5.00 floor."}
 ]},
 
-Q8:{item:8, title:"Item 8 · The invoice she did not expect", obj:"Scheme and pricing · Day 1, M2 (2.3); Day 2, M6 (6.4)",
-narr:`Gate 4. The membership agreement, the schedule of fees and the tripartite BIN sponsorship agreement are on the table in Adum, ready for signature. With them is the first <b>annual participation and access fee</b>, invoiced in advance for the year.\n\nKofi Boateng reads it twice, then puts it down.\n\n<span class="npc">"In advance? We have not issued a single card. And we are your first savings and loans member. Take it off, or bill me when the first card moves."</span>`,
-hint:"Separate the schedule from the concession. One of the two is a rule and the other has a route.", hintCrit:"money",
+Q8:{item:8, title:"Item 8 · What the board was told", obj:"Scheme and conduct · Day 1, M2 (2.3, the gates); Day 2, M6 (6.4)",
+narr:`Gate 4, Adum. The membership agreement, the schedule of fees and the tripartite BIN sponsorship agreement are on the table, ready for signature. While the lawyers work through the annexes, Kofi slides the board paper that approved the deal across to you.\n\nThree lines in it are not in the agreement:\n\n· contactless on every card from launch\n· a Nkabom BIN in year two\n· a GhIPSS contribution to the anniversary marketing\n\n<span class="npc">"Sign today," she says. "We will align the paper afterwards."</span>`,
+hint:"Take the three lines one at a time. They are not the same kind of problem, and only one of them is impossible.", hintCrit:"scheme",
 choices:[
- {t:"The schedule is approved and invoiced in advance. Governed concessions exist, and I will put one up.", q:"best", sp:3, money:26000, set:{v2_fee_right:true}, goto:"Q9",
-  cons:"He signs, and writes 'concession, in writing, before the next invoice' in his own notes.",
-  why:"The schedule and the invoicing basis are approved and apply to every member the same way. What does exist is a governed, time-limited concession, founding member and development market among them, applied for and approved through governance rather than agreed at a table. Saying both halves is what turns a refusal into a route."},
- {t:"Pay this one, and I will bring a concession to the committee before next year's invoice arrives.", q:"ok", sp:1, money:9000, down:{money:1}, goto:"Q9",
-  cons:"He pays it. He also stops asking, which means the concession that might have existed this year never gets tested.",
-  why:"The instinct on governance is right and the timing throws away a year. A concession can be sought for the invoice in front of him, and telling him it cannot leaves him believing the schedule has no flexibility of any kind."},
- {t:"The schedule is fixed and the timing is standard. Every member is invoiced in advance, every year.", q:"weak", sp:0, money:-8000, down:{money:2}, goto:"Q9",
-  mistake:"Said nothing exists when governed concessions on the participation fee do.",
-  cons:"Accurate, and it closes a door that is actually open. He signs, and files you under people who cannot help.",
-  why:"Both sentences are true and together they are misleading. The transaction price list has no concessions; the participation and access fee does, through governance. A member who is told the wrong one hears that the scheme is rigid where it is not."},
- {t:"Leave the invoice with me. For a founding member I can have it billed on the first transaction.", q:"breach", sp:-2, money:-22000, flag:"i8", down:{money:2}, goto:"Q9",
-  mistake:"Promised a concession on the fee before anyone had approved one.",
-  cons:"He writes the date in his cash-flow forecast. The committee has not met, and will not agree to be told what it decided.",
-  why:"An incentive or a concession promised before approval is the second of the four things never promised. Governance does not ratify what has already been given away, and the member finds out from an invoice rather than from you."}
+ {t:"Correct all three lines in the room, in writing, before a pen moves. Two have routes and one has none.", q:"best", sp:3, money:26000, set:{v3_record_right:true}, goto:"Q9",
+  cons:"Twenty minutes lost and a one-page note attached to the signature copy. She signs knowing what she has bought.",
+  why:"Contactless is a card profile choice, scoped and costed with the sponsor and the vendor. A Nkabom BIN in year two is available under the cadre rules once the Principal criteria are met, which makes it possible rather than promised. A marketing contribution is not the scheme's to give and is the fourth of the four things never promised. A signature does not make a board paper true, and the month the cards arrive without contactless is the month somebody reads the two documents side by side."},
+ {t:"Sign today, then write to her and Kofi this week setting the record straight on all three lines.", q:"ok", sp:1, money:9000, down:{scheme:1}, goto:"Q9",
+  cons:"The letter goes out on Thursday. The board never sees it, and the board paper stays the version they remember.",
+  why:"The instinct is right and the sequence throws it away. Before signature a correction is diligence. After signature the same words read as a retreat, and the people who approved the deal are not the people who receive your letter."},
+ {t:"Fix the marketing line, which is plainly not ours to give, and leave the other two to the project plan.", q:"weak", sp:0, money:-8000, down:{scheme:2}, goto:"Q9",
+  mistake:"Corrected only the line that was easiest to correct.",
+  cons:"The two you left standing are the two the board will measure the launch on.",
+  why:"Picking off the easy one leaves the expensive ones sitting in a document the board believes. Contactless and the year-two BIN both carry cost and both carry dates, and a project plan is not where a board reads its commitments."},
+ {t:"Sign now. The board paper is her document, and each line can be managed later as it comes up.", q:"breach", sp:-2, money:-22000, flag:"i8", down:{scheme:2}, goto:"Q9",
+  mistake:"Let a signature ratify commitments nobody had agreed.",
+  cons:"Month five. The cards arrive without contactless and the board minute is read out at the meeting.",
+  why:"Signing beside a document you have read and know to be wrong is how a scheme ends up owning promises it never made. The board paper becomes the record everyone acts on, and the first line to be tested is the one that costs money."}
 ]},
 
 Q9:{item:9, checkpoint:true, curve:1, title:"Curve ball 1 · The WhatsApp at 22:14", obj:"Pricing, conduct, sales · Day 2 (4.6, 6.4); Day 1 (1.2); Day 3 (7.4) · Apply, with an Analyse stretch",
@@ -1992,6 +2020,7 @@ function carryFor(scn){
 function startScn(i){
   const scn = scnList()[i];
   if(scn.unlock && !S.unlocks[scn.id]){ renderHome(); show("home"); return; }
+  if(isStopped()) return showStop();
   S.pendingScn = i;
   if(scn.day){
     $("pdTag").textContent = scn.title+" · "+(scn.storyTime||"");
@@ -2020,6 +2049,7 @@ function runKey(){ return "tps_run_"+S.courseId+"_"+(S.user?S.user.id:"anon"); }
 function saveRun(){
   const ss=S.sess; if(!ss || !ss.scn.day) return;
   lsSet(runKey(), { scnId:ss.scn.id, set:ss.set||0, nodeId:ss.nodeId, simDay:ss.simDay,
+    stoppedAt:ss.stoppedAt||null, stopNext:ss.stopNext||null,
     sp:ss.sp||0, flags_raised:ss.flags_raised||[], flags_cleared:ss.flags_cleared||[], moves:ss.moves||{},
     hints:ss.hints, wrong:ss.wrong, net:ss.net, ledger:ss.ledger, path:ss.path,
     crit:ss.crit, sloMiss:ss.sloMiss, mistakes:ss.mistakes, flags:ss.flags, carry:ss.carry,
@@ -2037,9 +2067,14 @@ function resumeRun(){
     moves:snap.moves||{}, pend:null,
     crit:snap.crit||Object.fromEntries(scn.criteria.map(c=>[c.id,0])),
     sloMiss:snap.sloMiss||{}, mistakes:snap.mistakes||[], picked:new Set(),
-    flags:snap.flags||{}, carry:snap.carry||{}, prediction:snap.prediction||"" };
+    flags:snap.flags||{}, carry:snap.carry||{}, prediction:snap.prediction||"",
+    stoppedAt:snap.stoppedAt||null, stopNext:snap.stopNext||null };
   emit("resume_run",{node:snap.nodeId});
   $("playScn").textContent = scn.title;
+  /* A team that reloads while the room is stopped comes back to the stop, not
+     to the curve ball it has already answered. */
+  if(S.sess.stoppedAt){ const scn2=S.sess.scn;
+    return showStop((scn2.checkpoints&&scn2.checkpoints[S.sess.stoppedAt])||""); }
   renderNode(); show("play");
 }
 function liveBalance(){ return bankExcl(S.sess.scn.id) + S.sess.net; }
@@ -2254,18 +2289,51 @@ async function checkpointPause(){
     detail:{ record:(ss.path||[]).map(p=>({n:p.n,q:p.q,sp:p.sp,item:p.item})),
              flags:(ss.flags_raised||[]).slice(), cleared:(ss.flags_cleared||[]).slice(),
              moves:ss.moves||null, checkpoint:done } });
+  ss.stoppedAt = ss.nodeId; ss.stopNext = ss.next;
   saveRun();
   emit("checkpoint",{node:ss.nodeId, outcome:"decision_"+done});
   $("nextBtn").disabled=true; $("nextBtn").textContent="Uploading…";
   const r=await flushOutbox();
   $("nextBtn").disabled=false;
-  $("lbResume").style.display="block";
-  $("lbResumeNote").textContent = r&&r.offline
+  showStop(r&&r.offline
     ? "Still offline. Your result is safe on this device and the board below shows this device only."
-    : note;
-  $("lbResumeBtn").onclick=()=>{ $("lbResume").style.display="none"; ss.nodeId=ss.next; renderNode(); show("play"); };
+    : note);
+}
+
+/* ---------- the STOP ----------
+   Everything that puts a team on the locked standings goes through here, so a
+   reload, a stray click on Leaderboard and the checkpoint itself all land in
+   the same place with the same gate. */
+function stopCode(){
+  const ss=S.sess, r=(PACK.fac&&PACK.fac.resume)||{};
+  return ss && ss.stoppedAt ? (r[ss.stoppedAt]||"") : "";
+}
+function showStop(note){
+  const ss=S.sess;
+  hud();                       /* a team that reloads into the stop still sees its score */
+  $("lbResume").style.display="block";
+  if(note!==undefined) $("lbResumeNote").textContent=note;
+  $("lbResumeErr").textContent="";
+  const want=stopCode();
+  $("lbResumeGate").style.display = want ? "flex" : "none";
+  const go=()=>{
+    const nx=ss.stopNext||ss.next;
+    ss.stoppedAt=null; ss.stopNext=null;
+    $("lbResume").style.display="none";
+    ss.nodeId=nx; ss.next=nx; saveRun(); renderNode(); show("play");
+  };
+  if(!want){ $("lbResumeBtn").onclick=go; renderLB("all"); show("lboard"); return; }
+  const tryCode=()=>{
+    const v=($("lbResumeCode").value||"").trim().toUpperCase();
+    if(v===want.toUpperCase() || v===String(PACK.fac.code||"").toUpperCase()){
+      emit("checkpoint_released",{node:ss.stoppedAt}); $("lbResumeCode").value=""; go();
+    } else { $("lbResumeErr").textContent="Not that code. Ask the facilitator."; $("lbResumeCode").select(); }
+  };
+  $("lbResumeBtn").onclick=tryCode;
+  $("lbResumeCode").onkeydown=e=>{ if(e.key==="Enter"){ e.preventDefault(); tryCode(); } };
   renderLB("all"); show("lboard");
 }
+const isStopped = ()=> !!(S.sess && S.sess.stoppedAt);
 $("hintBtn").onclick = ()=>{
   const ss=S.sess,n=node();
   $("hintText").classList.add("show"); ss.hints++;
@@ -2920,7 +2988,8 @@ $("facMailAll").onclick=facMailAll;
 $("pdGo").onclick=()=>beginRun(S.pendingScn, $("pdText").value.trim());
 $("pdSkip").onclick=()=>beginRun(S.pendingScn, "");
 $("navHome").onclick=()=>{renderHome();show("home")};
-$("navLB").onclick=()=>{ $("lbResume").style.display="none"; renderLB(); show("lboard"); };
+$("navLB").onclick=()=>{ if(isStopped()) return showStop();
+  $("lbResume").style.display="none"; renderLB(); show("lboard"); };
 $("navOut").onclick=()=>{ $("topbar").classList.remove("show"); $("telebtn").classList.remove("show"); initReg(); show("signin"); };
 $("dsHome").onclick=()=>{renderHome();show("home")};
 $("dsFull").onclick=()=>{renderLB();show("lboard")};
