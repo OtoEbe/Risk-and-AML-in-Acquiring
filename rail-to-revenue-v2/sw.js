@@ -1,5 +1,5 @@
 /* Rail to Revenue v2.0 service worker: keeps both pages usable through a reload with no signal. */
-const CACHE = "r2r2-2.0.20261014";
+const CACHE = "r2r2-2.0.20261015";
 const SHELL = ["./", "./index.html", "./console.html"];
 
 self.addEventListener("install", (e) => {

@@ -262,6 +262,47 @@ small, .small { font-size: var(--fs-small); }
 hr.rule { border: 0; border-top: 1px solid var(--ink-08); margin: 1rem 0; }
 .anchor { font-style: italic; color: var(--ink-70); border-left: 3px solid var(--green); padding-left: .75rem; }
 
+/* ---------- the rail map ---------- */
+.mappanel { background: var(--ink); border-radius: var(--radius); padding: .9rem 1rem .6rem; box-shadow: var(--shadow); position: relative; }
+.mappanel .maphead { display: flex; justify-content: space-between; align-items: baseline; color: rgba(255,255,255,.75); font-size: var(--fs-small); margin-bottom: .25rem; }
+.mappanel .maphead b { color: #fff; font-size: 16px; }
+.mappanel .maplegend { display: flex; gap: 1rem; flex-wrap: wrap; color: rgba(255,255,255,.7); font-size: 13px; margin-top: .25rem; }
+.mappanel .maplegend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--green); margin-right: 4px; vertical-align: middle; }
+.mappanel .maplegend i.sq { border-radius: 1px; background: #fff; }
+.railmap { width: 100%; height: auto; display: block; overflow: visible; --map-land: #143D5B; --map-land-line: #2E6E9E; --map-lake: #0B2E47; --map-bed: rgba(255,255,255,.07); --map-rail: #3F78B5; --map-pk: #12CC6F; --map-bad: #FFFFFF; --map-hub: #12CC6F; }
+.rm-land { fill: var(--map-land); stroke: var(--map-land-line); stroke-width: 1.1; stroke-linejoin: round; }
+.rm-lake { fill: var(--map-lake); stroke: #1F5A80; stroke-width: .8; }
+.rm-rail { fill: none; stroke-linecap: round; }
+.rm-rail-bed { stroke: var(--map-bed); stroke-width: 7; }
+.rm-rail-line { stroke: var(--map-rail); stroke-width: 2.4; opacity: .9; }
+.rm-pk { fill: var(--map-pk); }
+.rm-pk-bad { fill: var(--map-bad); opacity: .85; }
+.rm-st-focus { fill: none; stroke: transparent; stroke-width: 1.6; }
+.rm-focus .rm-st-focus { stroke: #fff; stroke-dasharray: 4 3; animation: rmspin 6s linear infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes rmspin { to { transform: rotate(360deg); } }
+.rm-st-ring { fill: var(--ink); stroke: #9FB3C8; stroke-width: 2; }
+.rm-st-core { fill: #CFE3FF; }
+.rm-champion .rm-st-ring { stroke: #12CC6F; stroke-width: 4; } .rm-champion .rm-st-core { fill: #12CC6F; }
+.rm-supportive .rm-st-ring { stroke: #7FE0D1; stroke-width: 3; } .rm-supportive .rm-st-core { fill: #7FE0D1; }
+.rm-neutral .rm-st-ring { stroke: #9FB3C8; stroke-width: 2; }
+.rm-sceptical .rm-st-ring { stroke: #F2B544; stroke-width: 2; stroke-dasharray: 3 2; } .rm-sceptical .rm-st-core { fill: #F2B544; }
+.rm-hostile .rm-st-ring { stroke: #FF6B5E; stroke-width: 1.6; stroke-dasharray: 2 2; } .rm-hostile .rm-st-core { fill: #FF6B5E; }
+.rm-hub-box { fill: var(--green); stroke: #E8FFF2; stroke-width: 1.5; }
+.rm-hub-mark { stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; }
+.rm-cap-track { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 3; }
+.rm-cap-ring { fill: none; stroke: #12CC6F; stroke-width: 3; stroke-linecap: round; transition: stroke-dasharray .6s; }
+.rm-cap-ring.rm-cap-empty { stroke: #FF6B5E; }
+.rm-label { fill: #E6EEF6; font-size: 11px; font-weight: 700; paint-order: stroke; stroke: var(--ink); stroke-width: 3px; stroke-linejoin: round; }
+.rm-label .rm-mood, .rm-label .rm-hubstate { font-size: 9px; font-weight: 400; fill: #B8C9DA; }
+.rm-focus .rm-label .rm-mood { fill: #fff; font-weight: 700; }
+.rm-label-hub { fill: #fff; font-size: 12px; }
+.rm-glow { transition: opacity .6s; opacity: .55; }
+.railmap.rm-warm .rm-hub-box { fill: #F2B544; }
+.railmap.rm-hot .rm-hub-box { fill: #FF6B5E; animation: hubpulse 1.2s infinite; transform-box: fill-box; transform-origin: center; }
+.railmap.rm-hot { --map-hub: #FF6B5E; } .railmap.rm-hot .rm-glow { opacity: .95; }
+.railmap.rm-warm { --map-hub: #F2B544; }
+@keyframes hubpulse { 50% { transform: scale(1.12); } }
+
 /* Team app layout */
 body.team { padding-bottom: 2rem; }
 #hdr { position: sticky; top: 0; z-index: 10; background: var(--ink); color: #fff; padding: .55rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: 0 2px 10px rgba(7,30,46,.25); }
@@ -283,7 +324,14 @@ body.team { padding-bottom: 2rem; }
 .stamp { color: var(--ink-50); font-size: 13px; font-family: var(--mono); }
 
 /* join */
-.join { max-width: 520px; margin: 4vh auto 0; }
+.join { max-width: 1040px; margin: 2vh auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; }
+.join .joinmap .mappanel { position: sticky; top: 1rem; }
+.mapbox .railmap { max-height: 62vh; margin: 0 auto; }
+.brief-cols { display: grid; grid-template-columns: 5fr 7fr; gap: 1rem; align-items: start; }
+.brief-text > * + * { margin-top: 1rem; }
+.brief-map .mappanel { position: sticky; top: 76px; }
+.settle .mapbox .railmap, .final .mapbox .railmap { max-height: 52vh; }
+@media (max-width: 900px) { .join, .brief-cols { grid-template-columns: 1fr; } .join .joinmap .mappanel, .brief-map .mappanel { position: static; } .mapbox .railmap { max-height: 46vh; } }
 .join .sheet { padding: 2rem; }
 .join h1 { font-size: 34px; margin-top: 1rem; }
 .join .sub { color: var(--ink-70); font-size: 19px; margin-bottom: 1.5rem; }
@@ -740,7 +788,7 @@ return module.exports;
 })({ exports: {} });
 </script>
 <script>
-const BUILD = {"version":"2.0.20261014","scenarioVersion":"2.0","pinSalt":"b5f830a69ee3d128","pinHash":"01d5a2bfaceae2465f805e6fa53bdac62704ec4dd30574468383941e43c3bc6f"};
+const BUILD = {"version":"2.0.20261015","scenarioVersion":"2.0","pinSalt":"ea05e493b317b898","pinHash":"37815a9b8dd19590c032e030bf29773adc52e7e7396ea8746839a792537951f4"};
 const SCN = JSON.parse(document.getElementById("scenario").textContent);
 </script>
 <script>
@@ -1111,6 +1159,147 @@ function registerSW() {
   navigator.serviceWorker.register("./sw.js").catch(() => { /* offline-first still works from the browser cache */ });
 }
 
+/* ---------- the rail map: the GhIPSS network over Ghana, live ----------
+ * Pure presentation. Packets run along the rails from the hub in Accra to six partner stations.
+ *   Partner Trust  -> how many packets run on every rail (3 to 14 per rail)
+ *   Risk Exposure  -> the share of packets that fail (slow, square, amber-red) and the heat of the hub
+ *   Time-to-Live   -> how fast packets move
+ *   Squad Capacity -> the workload ring around the hub (units of six)
+ *   Partner moods  -> the ring colour of each station, with the mood written under the name
+ *   focus          -> the station whose case is in play this round pulses
+ * Colour never carries meaning alone: failed packets change shape, moods are written out, the hub's heat is also a label. */
+const RAILMAP = (() => {
+  const P = (lon, lat) => [((lon + 3.45) * 62).toFixed(1), ((11.35 - lat) * 62).toFixed(1)];
+  const outline = [
+    [-2.83, 11.0], [-2.5, 10.98], [-2.2, 11.0], [-1.9, 10.99], [-1.6, 11.02], [-1.3, 11.0], [-1.0, 11.0], [-0.7, 11.0], [-0.45, 11.07], [-0.15, 11.14], [0.0, 11.08],
+    [-0.08, 10.7], [0.0, 10.5], [0.2, 10.4], [0.37, 10.05], [0.4, 9.5], [0.5, 9.0], [0.55, 8.5], [0.6, 8.0], [0.58, 7.5], [0.65, 7.0], [0.95, 6.6], [1.0, 6.2], [1.19, 6.1],
+    [1.0, 5.92], [0.8, 5.8], [0.6, 5.76], [0.4, 5.75], [0.2, 5.7], [0.0, 5.62], [-0.2, 5.55], [-0.4, 5.48], [-0.6, 5.35], [-0.8, 5.25], [-1.0, 5.2], [-1.25, 5.1], [-1.5, 5.02], [-1.75, 4.92], [-1.95, 4.8], [-2.09, 4.74], [-2.3, 4.85], [-2.55, 4.95], [-2.8, 5.02], [-3.05, 5.1], [-3.26, 5.14],
+    [-3.1, 5.4], [-2.98, 5.65], [-3.02, 5.95], [-3.22, 6.25], [-3.2, 6.6], [-3.05, 6.85], [-2.95, 7.2], [-2.82, 7.55], [-2.6, 7.95], [-2.52, 8.2], [-2.65, 8.55], [-2.72, 8.9], [-2.68, 9.3], [-2.78, 9.7], [-2.9, 10.3],
+  ];
+  const lake = [[0.05, 6.3], [0.15, 6.6], [0.22, 6.9], [0.25, 7.2], [0.3, 7.5], [0.25, 7.9], [0.2, 8.3], [0.1, 8.7], [-0.05, 8.5], [-0.1, 8.1], [-0.3, 7.95], [-0.6, 8.1], [-0.95, 8.4], [-1.3, 8.65], [-1.45, 8.9], [-1.2, 8.55], [-0.85, 8.25], [-0.55, 7.9], [-0.35, 7.6], [-0.2, 7.3], [-0.15, 7.0], [-0.1, 6.7], [-0.05, 6.4]];
+  const HUB = [-0.19, 5.6];
+  const ST = {
+    NYEP: { at: [-0.84, 9.4], short: "NYEP", place: "Tamale", dx: 12, dy: 4, anchor: "start", bend: -0.25 },
+    XXPAY: { at: [-2.33, 7.34], short: "XxPay", place: "Sunyani", dx: -12, dy: 4, anchor: "end", bend: 0.35 },
+    ABUSUA: { at: [-1.62, 6.69], short: "Abusua Appliances", place: "Kumasi", dx: -12, dy: -10, anchor: "end", bend: 0.45 },
+    LENDING: { at: [0.47, 6.6], short: "Lending banks", place: "Ho", dx: 0, dy: -24, anchor: "middle", bend: -0.5 },
+    MERIDIAN: { at: [-1.25, 5.11], short: "Meridian Bank", place: "Cape Coast", dx: 12, dy: 4, anchor: "start", bend: 0.5 },
+    ADEPA: { at: [-1.75, 4.92], short: "Adepa Pay", place: "Takoradi", dx: -12, dy: -10, anchor: "end", bend: 0.75 },
+  };
+  const ORDER = ["NYEP", "XXPAY", "ABUSUA", "LENDING", "MERIDIAN", "ADEPA"];
+  const MOOD = { Champion: "champion", Supportive: "supportive", Neutral: "neutral", Sceptical: "sceptical", Hostile: "hostile" };
+  function rail(a, b, bend) {
+    const [x1, y1] = P(a[0], a[1]).map(Number), [x2, y2] = P(b[0], b[1]).map(Number);
+    const mx = (x1 + x2) / 2 + (bend || 0) * (y2 - y1) * 0.18, my = (y1 + y2) / 2 - (bend || 0) * (x2 - x1) * 0.18;
+    return `M${x1},${y1} Q${mx.toFixed(1)},${my.toFixed(1)} ${x2},${y2}`;
+  }
+  function svg(opts) {
+    const o = opts || {};
+    const poly = (pts) => pts.map((p) => P(p[0], p[1]).join(",")).join(" ");
+    const [hx, hy] = P(HUB[0], HUB[1]).map(Number);
+    const uid = o.uid || "";
+    let s = `<svg class="railmap${o.cls ? " " + o.cls : ""}" viewBox="-8 0 316 418" role="img" aria-label="GhIPSS network map: the switch in Accra linked to six partner stations across Ghana">`;
+    s += `<defs><radialGradient id="hubglow${uid}"><stop offset="0" stop-color="var(--map-hub)" stop-opacity=".6"/><stop offset="1" stop-color="var(--map-hub)" stop-opacity="0"/></radialGradient></defs>`;
+    s += `<polygon class="rm-land" points="${poly(outline)}"/>`;
+    s += `<polygon class="rm-lake" points="${poly(lake)}"/>`;
+    ORDER.forEach((k) => { s += `<path class="rm-rail rm-rail-bed" d="${rail(HUB, ST[k].at, ST[k].bend)}"/>`; });
+    ORDER.forEach((k) => { s += `<path class="rm-rail rm-rail-line" data-k="${k}" d="${rail(HUB, ST[k].at, ST[k].bend)}"/>`; });
+    s += `<g class="rm-packets"></g>`;
+    s += `<circle class="rm-glow" cx="${hx}" cy="${hy}" r="38" fill="url(#hubglow${uid})"/>`;
+    ORDER.forEach((k) => {
+      const [x, y] = P(ST[k].at[0], ST[k].at[1]);
+      s += `<g class="rm-station rm-neutral" data-k="${k}"><circle cx="${x}" cy="${y}" r="11" class="rm-st-focus"/><circle cx="${x}" cy="${y}" r="7.5" class="rm-st-ring"/><circle cx="${x}" cy="${y}" r="3" class="rm-st-core"/>`;
+      if (!o.nolabels) s += `<text x="${+x + ST[k].dx}" y="${+y + ST[k].dy}" text-anchor="${ST[k].anchor}" class="rm-label"><tspan class="rm-name">${esc(ST[k].short)}</tspan><tspan class="rm-mood" x="${+x + ST[k].dx}" dy="11"></tspan></text>`;
+      s += `</g>`;
+    });
+    s += `<g class="rm-hub"><circle cx="${hx}" cy="${hy}" r="19" class="rm-cap-track"/><circle cx="${hx}" cy="${hy}" r="19" class="rm-cap-ring" transform="rotate(-90 ${hx} ${hy})"/><rect x="${hx - 11}" y="${hy - 11}" width="22" height="22" rx="5" class="rm-hub-box"/><path d="M${hx - 6},${hy + 3} h12 M${hx - 6},${hy - 3} h12" class="rm-hub-mark"/>`;
+    if (!o.nolabels) s += `<text x="${hx + 24}" y="${hy + 4}" class="rm-label rm-label-hub"><tspan class="rm-name">GhIPSS</tspan><tspan class="rm-hubstate" x="${hx + 24}" dy="11"></tspan></text>`;
+    s += `</g></svg>`;
+    return s;
+  }
+  const live = [];
+  function mount(container, opts) {
+    if (!container) return null;
+    container.innerHTML = svg(opts);
+    const root = container.querySelector("svg");
+    const rails = Array.from(root.querySelectorAll(".rm-rail-line")).map((p) => {
+      const L = p.getTotalLength(), pts = [];
+      for (let i = 0; i <= 120; i++) { const q = p.getPointAtLength((L * i) / 120); pts.push([q.x, q.y]); }
+      return { k: p.getAttribute("data-k"), pts };
+    });
+    const g = root.querySelector(".rm-packets");
+    const inst = { root, rails, g, packets: [], meters: { trust: 50, risk: 30, ttl: 120, capacity: 4 }, moods: {}, focus: null, alive: true };
+    inst.update = (m) => {
+      if (m.meters) inst.meters = Object.assign({}, inst.meters, m.meters);
+      if (m.moods) inst.moods = m.moods;
+      if ("focus" in m) inst.focus = m.focus;
+      const M = inst.meters;
+      root.classList.toggle("rm-hot", M.risk >= 60);
+      root.classList.toggle("rm-warm", M.risk >= 45 && M.risk < 60);
+      const hs = root.querySelector(".rm-hubstate");
+      if (hs) hs.textContent = M.risk >= 60 ? "Risk high" : M.risk >= 45 ? "Risk elevated" : "Rails steady";
+      const ring = root.querySelector(".rm-cap-ring");
+      if (ring) { const c = 2 * Math.PI * 19; const frac = clampN(M.capacity / 6, 0, 1); ring.setAttribute("stroke-dasharray", `${(c * frac).toFixed(1)} ${(c * (1 - frac)).toFixed(1)}`); ring.classList.toggle("rm-cap-empty", M.capacity <= 0); }
+      ORDER.forEach((k) => {
+        const st = root.querySelector(`.rm-station[data-k="${k}"]`);
+        const mood = inst.moods[k] || "Neutral";
+        st.setAttribute("class", `rm-station rm-${MOOD[mood] || "neutral"}${inst.focus === k ? " rm-focus" : ""}`);
+        const t = st.querySelector(".rm-mood"); if (t) t.textContent = mood === "Neutral" && inst.focus !== k ? "" : (inst.focus === k ? "This round" : mood);
+      });
+      const want = Math.round(3 + M.trust / 9);
+      rails.forEach((r) => {
+        const mine = inst.packets.filter((p) => p.r === r);
+        for (let i = mine.length; i < want; i++) {
+          const c = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          c.setAttribute("width", "3.8"); c.setAttribute("height", "3.8"); c.setAttribute("rx", "1.9"); g.appendChild(c);
+          inst.packets.push({ r, c, t: Math.random(), dir: Math.random() < 0.5 ? 1 : -1, v: 0.6 + Math.random() * 0.8 });
+        }
+        mine.slice(want).forEach((p) => { p.c.remove(); inst.packets.splice(inst.packets.indexOf(p), 1); });
+      });
+      inst.packets.forEach((p, i) => {
+        const bad = ((i * 37) % 100) < M.risk * 0.55;
+        p.bad = bad;
+        p.c.setAttribute("class", bad ? "rm-pk rm-pk-bad" : "rm-pk");
+        p.c.setAttribute("rx", bad ? "0.6" : "1.9"); // failed packets are squares, good ones are dots
+      });
+      inst.draw(0);
+    };
+    inst.draw = (dt) => {
+      const speed = 0.06 * (0.55 + clampN((150 - inst.meters.ttl) / 120, 0, 1.0));
+      inst.packets.forEach((p) => {
+        const v = p.v * speed * (p.bad ? 0.35 : 1);
+        p.t += p.dir * v * dt;
+        if (p.t > 1) p.t -= 1; if (p.t < 0) p.t += 1;
+        const pts = p.r.pts, f = p.t * (pts.length - 1), i = Math.floor(f), a = pts[i], b = pts[Math.min(i + 1, pts.length - 1)], u = f - i;
+        p.c.setAttribute("x", (a[0] + (b[0] - a[0]) * u - 1.9).toFixed(1));
+        p.c.setAttribute("y", (a[1] + (b[1] - a[1]) * u - 1.9).toFixed(1));
+      });
+    };
+    inst.destroy = () => { inst.alive = false; const i = live.indexOf(inst); if (i >= 0) live.splice(i, 1); };
+    live.push(inst);
+    inst.update({ meters: (opts && opts.meters) || {}, moods: (opts && opts.moods) || {}, focus: (opts && opts.focus) || null });
+    return inst;
+  }
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let prev = 0;
+  function loop(ts) {
+    const dt = prev ? Math.min(0.1, (ts - prev) / 1000) : 0;
+    prev = ts;
+    if (!document.hidden && !reduce) {
+      for (let i = live.length - 1; i >= 0; i--) {
+        const m = live[i];
+        if (!m.root.isConnected) { live.splice(i, 1); continue; }
+        m.draw(dt);
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(loop);
+  /** Build the moods map the station rings need from the engine's moods() output. */
+  function moodsOf(scn, state) { const out = {}; ENGINE.moods(scn, state).forEach((m) => { out[m.account] = m.mood; }); return out; }
+  return { mount, svg, moodsOf, STATIONS: ST, ORDER };
+})();
+
 /* Rail to Revenue v2.0: team app. State = ENGINE.replay(SCN, events). Everything is saved locally before it renders. */
 "use strict";
 
@@ -1142,6 +1331,15 @@ function released(r) { return REC.practice || REC.ui.released.indexOf(r) !== -1;
 function started(r) { return REC.ui.started.indexOf(r) !== -1; }
 function derive() { return safeReplay(SCN, effectiveEvents(REC.events)); }
 function nodeKey(state) { return state.decisions + ":" + state.presented; }
+function mapPanelHTML(id, title, sub) {
+  return `<div class="mappanel"><div class="maphead"><b>${esc(title)}</b><span>${esc(sub || "")}</span></div><div id="${id}" class="mapbox"></div><div class="maplegend"><span><i></i>Payments flowing (more with Partner Trust)</span><span><i class="sq"></i>Failed payments (more with Risk Exposure)</span><span>Speed follows Time-to-Live. Ring on the hub: Squad Capacity.</span></div></div>`;
+}
+function mountMap(id, state, focus) {
+  const host = $("#" + id); if (!host) return;
+  const m = state ? { trust: state.trust, risk: state.risk, ttl: state.ttl, capacity: state.capacity } : { trust: 50, risk: 30, ttl: 120, capacity: 4 };
+  RAILMAP.mount(host, { meters: m, moods: state ? RAILMAP.moodsOf(SCN, state) : {}, focus: focus || null, uid: "t" });
+}
+function roundAccount(st) { const r = SCN.rounds[Math.min(st.round, SCN.rounds.length) - 1]; return r ? r.account : null; }
 function lastDecision(state) { const d = decisionsOf(state); return d.length ? d[d.length - 1] : null; }
 function pinOk(pin) { return sha256hex(BUILD.pinSalt + "|" + String(pin || "").trim().toUpperCase()) === BUILD.pinHash; }
 function codesFor() { return sessionCodes(REC.session, 9); }
@@ -1195,17 +1393,18 @@ function render() {
 
 /* ---------- join ---------- */
 function renderJoin() {
-  APP.innerHTML = `<div class="join"><div class="sheet">
+  APP.innerHTML = `<div class="join"><div class="joinmap">${mapPanelHTML("joinMap", "The GhIPSS network", "Day 1 of the quarter")}</div><div class="sheet">
     <span class="ghlogo" aria-hidden="true">R2</span>
     <h1>Rail to Revenue</h1>
     <p class="sub">One quarter at GhIPSS. Join your squad's table.</p>
-    <div class="field"><label for="jSess">Session code</label><input id="jSess" class="code-in" autocapitalize="characters" autocomplete="off" spellcheck="false" value="${esc(STORE.get("r2r2_lastSession", ""))}" placeholder="From the projector"></div>
+    <div class="field"><label for="jSess">Session code</label><input id="jSess" class="code-in" autocapitalize="characters" autocomplete="off" spellcheck="false" value="${esc(STORE.get("r2r2_lastSession", ""))}" placeholder="On screen"></div>
     <div class="field"><label for="jJoin">Your table's join code</label><input id="jJoin" class="code-in" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="4 digits"><div class="hint">On your table tent.</div></div>
     <div class="err" id="jErr" role="alert"></div>
     <button class="btn primary wide big" id="jGo">Join the session</button>
     <div class="row between" style="margin-top:1rem"><button class="btn quiet" id="jRestore">Continue a team from another device</button><button class="btn quiet" id="jPractice">Faculty practice run</button></div>
     <p class="stamp" style="margin-top:1rem">Build ${esc(BUILD.version)}, scenario ${esc(SCN.meta.version)}</p>
   </div></div>`;
+  mountMap("joinMap", null, null);
   const go = () => {
     const sess = $("#jSess").value.trim(), join = $("#jJoin").value.trim();
     if (!normSession(sess)) { $("#jErr").textContent = "Type the session code shown on the projector."; return; }
@@ -1249,6 +1448,7 @@ function codeEntryHTML(label) { return `<div class="sheet tight"><div class="row
 function bindCodeBtn() { const b = $("#codeBtn"); if (b) b.onclick = codeModal; }
 function renderLobby(st) {
   APP.innerHTML = `<div class="screen">
+    ${mapPanelHTML("lobbyMap", "The GhIPSS network", "Day 1. Five live situations, one squad.")}
     <div class="cold">${SCN.meta.coldOpen.map((l) => `<p>${esc(l)}</p>`).join("")}<p class="mandate">The Sponsor's mandate: "${esc(SCN.meta.mandate)}"</p></div>
     <div class="sheet"><h2>Before Round 1 opens</h2>
       <p>Read your role card in silence. It carries your cluster's secret objective for the quarter; keep it to your cluster. The team earns the Engine Bonus only when all four clusters meet their objectives together.</p>
@@ -1256,22 +1456,25 @@ function renderLobby(st) {
       <p class="anchor">${esc(SCN.meta.anchor)}</p></div>
     ${codeEntryHTML("Round 1 opens with a code")}
   </div>`;
+  mountMap("lobbyMap", st, null);
   bindCodeBtn();
 }
 function renderWaiting(st) {
   const prev = st.round - 1;
   APP.innerHTML = `<div class="screen">
     <div class="sheet"><h1>Round ${st.round} opens soon</h1><p class="lead">${esc(SCN.rounds[st.round - 1].title)}. Take a breath while the room settles.</p></div>
+    ${mapPanelHTML("waitMap", "The GhIPSS network", `After Round ${prev}`)}
     <div class="sheet tight"><h3>Where the partners stand</h3>${moodBoardHTML(SCN, st)}</div>
     ${prev >= 1 ? frontPageHTML(SCN, st, prev) : ""}
     ${codeEntryHTML(`Round ${st.round} opens with a code`)}
   </div>`;
+  mountMap("waitMap", st, roundAccount(st));
   bindCodeBtn();
 }
 function renderBrief(st) {
   const r = SCN.rounds[st.round - 1];
   const acc = accountOf(SCN, r.account);
-  APP.innerHTML = `<div class="screen brief">
+  APP.innerHTML = `<div class="screen brief"><div class="brief-cols"><div class="brief-map">${mapPanelHTML("briefMap", "The GhIPSS network", `Round ${r.number}: ${esc(acc ? acc.name : "")}`)}</div><div class="brief-text">
     <div class="sheet">
       <div class="days">Round ${r.number} of 5, ${esc(r.days)}</div>
       <h1>${esc(r.title)}</h1>
@@ -1281,7 +1484,8 @@ function renderBrief(st) {
     </div>
     <div class="sheet tight"><h3>Where the partners stand</h3>${moodBoardHTML(SCN, st)}</div>
     <div class="row end"><button class="btn primary big" id="beginBtn">Begin Round ${r.number}</button></div>
-  </div>`;
+  </div></div></div>`;
+  mountMap("briefMap", st, r.account);
   $("#beginBtn").onclick = () => { if (!started(st.round)) REC.ui.started.push(st.round); saveRec(); SOUND.roundStart(); render(); };
 }
 
@@ -1399,6 +1603,7 @@ function renderSettlement(st, s) {
       </div>
       <p style="margin-top:.75rem"><b>Revenue after settlement: ${esc(fmtGHSfull(s.after.capital))}</b>${total ? ` (${esc(fmtFx(total))} from the bands)` : ""}</p>
     </div>
+    ${mapPanelHTML("setMap", "The rails after Round " + s.round, `Trust ${s.after.trust}, Risk ${s.after.risk}, ${s.after.ttl} days, Capacity ${s.after.capacity}`)}
     ${frontPageHTML(SCN, st, s.round)}
     ${hz.length ? `<div class="sheet tight"><h3>On the horizon</h3><div class="horizon">${hz.map((h) => `<div class="h${h.positive ? " good" : ""}"><i></i><span>${esc(h.text)}</span></div>`).join("")}</div></div>` : ""}
     <div class="sheet tight"><div class="row between"><div><b>Results code</b><div class="small muted">Hold it up when the facilitator scans the room.</div></div><button class="btn ghost" id="qrBtn">Show the code</button></div></div>
@@ -1406,6 +1611,7 @@ function renderSettlement(st, s) {
     <div class="row end"><button class="btn primary big" id="nextBtn">${last ? "See the final position" : `Ready for Round ${s.round + 1}`}</button></div>
   </div>`;
   SOUND.settle();
+  mountMap("setMap", st, last ? null : roundAccount(st));
   $("#qrBtn").onclick = showResultsCode;
   $("#nextBtn").onclick = () => { REC.ui.ackSet += 1; saveRec(); render(); };
 }
@@ -1438,6 +1644,7 @@ function renderFinal(st) {
         ${f.autoResolved.map((a) => `<dt>Settled without a decision</dt><dd>${esc(a.note)} ${esc(fmtFx(a.effects.capital || 0))}</dd>`).join("")}
       </dl>
     </div>
+    ${mapPanelHTML("finalMap", "The rails at the close", `Trust ${st.trust}, Risk ${st.risk}, ${st.ttl} days, Capacity ${st.capacity}`)}
     <div class="sheet"><h2>One team, one engine</h2><p>Your four cluster objectives, revealed. The Engine Bonus needs all four together.</p>
       <div class="objs">${objs.map((obj) => { const o = SCN.clusterObjectives.find((x) => x.cluster === obj.cluster); const fn = fnOf(SCN, obj.cluster); return `<div class="obj${obj.met ? " met" : ""}" style="--c:#${fn.colour}"><div class="own">${esc(fn.name)}</div><div class="small muted">${esc(o.title)}</div><div class="state">${obj.met ? "Met" : "Not met"}</div><div class="why">${obj.met ? esc(o.card) : esc(objectiveReason(o, obj, st))}</div></div>`; }).join("")}</div>
       <div class="bonus${st.engineBonus ? "" : " none"}" style="margin-top:1rem">${st.engineBonus ? `Engine Bonus earned: ${esc(fmtFx(st.engineBonus))}. All four clusters met their objectives together.` : `No Engine Bonus: ${st.objectivesMet} of 4 objectives met.`}</div>
@@ -1446,6 +1653,7 @@ function renderFinal(st) {
     <p class="anchor">${esc(SCN.meta.anchor)}</p>
     <div class="row end"><button class="btn ghost" id="dlBtn">Download the decision log</button></div>
   </div>`;
+  mountMap("finalMap", st, null);
   $("#dlBtn").onclick = downloadLog;
 }
 
